@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UP GK Master Pro (GitHub Edition)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfd; touch-action: pan-y; }
+    .bento-card { background: white; border-radius: 24px; border: 1px solid #f1f1f1; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .option-row { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; border: 2px solid #f8f9fa; cursor: pointer; background: #f8f9fa; margin-bottom: 8px; transition: all 0.2s ease; }
+    .option-row:hover { border-color: #cbd5e1; background: #f1f5f9; }
+    .selected-correct { border-color: #22c55e !important; background: #f0fdf4 !important; pointer-events: none; }
+    .selected-wrong { border-color: #ef4444 !important; background: #fef2f2 !important; pointer-events: none; }
+    .nav-btn { background: #1a1a1a; color: white; padding: 12px 20px; border-radius: 12px; font-weight: 700; transition: opacity 0.2s; }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .shimmer { height: 24px; background: #eeeeee; border-radius: 8px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    
+    .q-circle { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 28px; border-radius: 50%; font-size: 10px; font-weight: 800; border: 2px solid #f1f5f9; background: white; color: #64748b; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+    .q-circle:hover { border-color: #cbd5e1; color: #1e293b; }
+    .q-circle-active { border-color: #0f172a !important; color: #0f172a !important; font-weight: 900; transform: scale(1.05); }
+    .q-circle-correct { background: #dcfce7 !important; border-color: #bbf7d0 !important; color: #166534 !important; }
+    .q-circle-wrong { background: #fee2e2 !important; border-color: #fecaca !important; color: #991b1b !important; }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scroll-scrollbar-width: none; }
+    .swipe-zone { position: relative; user-select: none; }
+    .sidebar-overlay { background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(4px); transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .sidebar-drawer { transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .sidebar-open .sidebar-drawer { transform: translateX(0); }
+  </style>
+</head>
+<body class="p-4 md:p-6">
+
+  <!-- SIDEBAR MENU DRAWER -->
+  <div id="sidebar-root" class="fixed inset-0 z-50 pointer-events-none">
+    <div id="sidebar-overlay" onclick="closeSidebar()" class="sidebar-overlay absolute inset-0 opacity-0 pointer-events-none"></div>
+    <div class="sidebar-drawer absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl border-r border-slate-100 flex flex-col pointer-events-auto p-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div>
+          <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Switch Topic</h3>
+          <p id="sidebar-subject-title" class="text-sm font-bold text-slate-700 truncate max-w-[180px]">...</p>
+        </div>
+        <button onclick="closeSidebar()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+      <div id="sidebar-topic-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-sm"></div>
+    </div>
+  </div>
+
+  <div id="app" class="max-w-xl mx-auto">
+    
+    <!-- SCREEN 1: Subject Browser -->
+    <div id="subject-screen">
+      <h2 class="text-xl font-extrabold mb-2 text-slate-800">Select Subject</h2>
+      <p class="text-xs text-slate-400 mb-6">Choose a domain worksheet to begin</p>
+      <div id="subject-grid" class="space-y-3">
+        <div class="space-y-2">
+          <div class="shimmer h-16 w-full"></div>
+          <div class="shimmer h-16 w-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Chapter Browser -->
+    <div id="chapter-screen" class="hidden">
+      <div class="mb-6 flex justify-between items-center">
+        <div>
+          <button onclick="showSubjectsScreen()" class="text-xs text-blue-500 font-bold mb-1 flex items-center gap-1">← Change Subject</button>
+          <h2 id="chapter-screen-title" class="text-xl font-extrabold text-slate-800">Topics</h2>
+        </div>
+        <button onclick="showSubjectsScreen()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-600" title="Return Home">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-[18px] h-[18px]">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          <span class="text-[8px] font-extrabold tracking-wider uppercase mt-[1px] text-slate-500">Home</span>
+        </button>
+      </div>
+      <div id="chapter-grid" class="space-y-3"></div>
+    </div>
+
+    <!-- SCREEN 3: Quiz Panel -->
+    <div id="quiz-screen" class="hidden">
+      <div class="flex items-center gap-3 mb-4">
+        <button onclick="openSidebar()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all gap-[4px]" title="Open Menu">
+          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
+          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
+          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
+        </button>
+        <div class="flex-1 min-w-0">
+          <h1 id="header-subject-name" class="text-base font-extrabold text-slate-800 truncate leading-tight">Subject Title</h1>
+          <p id="header-topic-name" class="text-xs text-slate-400 font-medium truncate">Topic Sub-Header</p>
+        </div>
+        <button onclick="showSubjectsScreen()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-600" title="Return Home">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-[18px] h-[18px]">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          <span class="text-[8px] font-extrabold tracking-wider uppercase mt-[1px] text-slate-500">Home</span>
+        </button>
+      </div>
+
+      <!-- Scoreboard Container -->
+      <div class="grid grid-cols-3 gap-2.5 mb-3.5">
+        <div class="bento-card p-2 text-center border-b-[3px] border-b-green-500">
+          <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Correct</p>
+          <p id="score-correct" class="text-base font-extrabold text-green-600">0</p>
+        </div>
+        <div class="bento-card p-2 text-center border-b-[3px] border-b-red-500">
+          <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Wrong</p>
+          <p id="score-wrong" class="text-base font-extrabold text-red-600">0</p>
+        </div>
+        <div class="bento-card p-2 text-center border-b-[3px] border-b-blue-500">
+          <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Total</p>
+          <p id="score-total" class="text-base font-extrabold text-blue-600">0</p>
+        </div>
+      </div>
+
+      <!-- Slider Row Index -->
+      <div class="bento-card p-3 mb-4 bg-slate-50 relative">
+        <div class="flex items-center justify-between gap-2">
+          <div id="badge-row-container" class="flex-1 overflow-x-auto no-scrollbar py-1">
+            <div id="badge-slider-row" class="flex gap-1.5 items-center"></div>
+          </div>
+          <button onclick="toggleGridExpandedView()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 font-bold">⋮</button>
+        </div>
+        <div id="expanded-matrix-panel" class="hidden mt-3 pt-3 border-t border-slate-200">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Expanded Grid Index</p>
+          <div id="badge-matrix-grid" class="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <!-- Live Quiz Card -->
+      <div id="quiz-card" class="bento-card p-6 md:p-8 mb-6 swipe-zone">
+        <div id="exam-tag" class="text-[10px] text-blue-500 font-bold mb-1 italic tracking-wide"></div>
+        <div id="q-label" class="text-[11px] font-bold text-slate-400 mb-3 tracking-wider"></div>
+        <h2 id="q-text" class="text-lg font-bold leading-snug mb-8 text-slate-800"></h2>
+        <div id="options-grid"></div>
+        <div id="explanation-box" class="hidden mt-6 p-5 bg-blue-50 rounded-2xl border border-blue-100 text-xs text-slate-600 leading-relaxed"></div>
+      </div>
+
+      <div class="flex justify-between gap-3">
+        <button id="prev-btn" onclick="prevQ()" class="nav-btn !bg-slate-100 !text-slate-500">← Prev</button>
+        <button id="next-btn" onclick="nextQ()" class="nav-btn flex-1">Next →</button>
+      </div>
+      <button onclick="goBackToChapters()" class="w-full mt-8 py-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest border-t border-dashed border-slate-200 hover:text-slate-600">Back to Topics</button>
+    </div>
+  </div>
+
+  <script>
+    // Configured to automatically target data.json relative file inside GitHub repo directory
+    const JSON_DATABASE_URL = "data.json"; 
+
+    let dbData = null;
+    let selectedSubject = "";
+    let selectedChapter = "";
+    let qList = []; 
+    let curIdx = 0;
+    let userAnswers = {};
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let isMatrixExpanded = false;
+
+    window.onload = () => {
+      setupSwipeGestures();
+      initializeSystemDatabase();
+    };
+
+    function initializeSystemDatabase() {
+      fetch(JSON_DATABASE_URL)
+        .then(res => {
+          if(!res.ok) throw new Error("Database JSON structural network link down");
+          return res.json();
+        })
+        .then(payload => {
+          dbData = payload;
+          renderSubjectsEngine();
+          restoreSavedSession();
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('subject-grid').innerHTML = `
+            <div class="p-5 bg-red-50 text-red-600 rounded-2xl border border-red-200 text-xs">
+              <p class="font-bold mb-1 text-sm">Failed to Load data.json Database</p>
+              <p>Make sure your file is formatted correctly and committed to the same folder as index.html.</p>
+            </div>`;
+        });
+    }
+
+    function renderSubjectsEngine() {
+      const subjectNames = Object.keys(dbData || {});
+      if(subjectNames.length === 0) return;
+      document.getElementById('subject-grid').innerHTML = subjectNames.map(name => `
+        <div onclick="clearSessionCache(); selectSubject('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white group transition-all">
+          <span class="font-bold text-sm text-slate-700 group-hover:text-blue-600">${name}</span>
+          <span class="text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1">→</span>
+        </div>
+      `).join('');
+    }
+
+    function selectSubject(subjectName) {
+      selectedSubject = subjectName;
+      document.getElementById('subject-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('chapter-screen').classList.remove('hidden');
+      document.getElementById('chapter-screen-title').innerText = `${subjectName} - Topics`;
+      
+      const chapters = Object.keys(dbData[subjectName] || {});
+      if (chapters.length === 0) {
+        document.getElementById('chapter-grid').innerHTML = '<div class="p-5 text-center text-slate-400 text-xs">No topics found inside this subject.</div>';
+        return;
+      }
+      document.getElementById('chapter-grid').innerHTML = chapters.map(name => `
+        <div onclick="startQuiz('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white group transition-all">
+          <span class="font-bold text-sm text-slate-700 group-hover:text-blue-600">${name}</span>
+          <span class="text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1">→</span>
+        </div>
+      `).join('');
+      saveSessionState();
+    }
+
+    function startQuiz(chapterName) {
+      selectedChapter = chapterName;
+      qList = dbData[selectedSubject][chapterName] || [];
+      curIdx = 0; userAnswers = {}; isMatrixExpanded = false;
+      
+      document.getElementById('expanded-matrix-panel').classList.add('hidden');
+      document.getElementById('chapter-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      
+      document.getElementById('header-subject-name').innerText = selectedSubject;
+      document.getElementById('header-topic-name').innerText = selectedChapter;
+      document.getElementById('score-total').innerText = qList.length;
+      document.getElementById('score-correct').innerText = 0;
+      document.getElementById('score-wrong').innerText = 0;
+
+      loadCurrentQuestion();
+    }
+
+    function loadCurrentQuestion() {
+      if (qList.length === 0) return;
+      const data = qList[curIdx];
+      
+      document.getElementById('q-text').innerText = data.Question || data.question;
+      document.getElementById('q-label').innerText = `Question ${curIdx + 1} of ${qList.length}`;
+      document.getElementById('exam-tag').innerText = data.Exam || "";
+      document.getElementById('explanation-box').classList.add('hidden');
+      document.getElementById('prev-btn').disabled = (curIdx === 0);
+      
+      const grid = document.getElementById('options-grid');
+      grid.innerHTML = '';
+      
+      ['OptionA', 'OptionB', 'OptionC', 'OptionD', 'OptionE'].forEach((key, i) => {
+        const val = data[key];
+        if (val && val.toString().trim() !== "") {
+          const letter = String.fromCharCode(65 + i);
+          const div = document.createElement('div');
+          div.className = 'option-row';
+          div.innerHTML = `<span class="text-sm font-semibold text-slate-700">${val}</span>`;
+          
+          if (userAnswers[curIdx]) {
+            if (letter === data.Answer) div.classList.add('selected-correct');
+            else if (letter === userAnswers[curIdx]) div.classList.add('selected-wrong');
+            showExp(data.Explanation);
+          } else {
+            div.onclick = () => { 
+              userAnswers[curIdx] = letter; 
+              updateScores(); 
+              loadCurrentQuestion();
+            };
+          }
+          grid.appendChild(div);
+        }
+      });
+
+      renderUnifiedNavigationIndex();
+      saveSessionState();
+    }
+
+    function showExp(text) {
+      const box = document.getElementById('explanation-box');
+      box.innerText = text || "No detailed explanation available for this item.";
+      box.classList.remove('hidden');
+    }
+
+    function updateScores() {
+      let c = 0, w = 0;
+      Object.keys(userAnswers).forEach(idx => {
+        if (qList[idx] && userAnswers[idx] === qList[idx].Answer) c++; else w++;
+      });
+      document.getElementById('score-correct').innerText = c;
+      document.getElementById('score-wrong').innerText = w;
+    }
+
+    function renderUnifiedNavigationIndex() {
+      const createCircles = () => qList.map((_, idx) => {
+        let statusClass = "";
+        if (userAnswers[idx]) statusClass = (userAnswers[idx] === qList[idx].Answer) ? "q-circle-correct" : "q-circle-wrong";
+        if (idx === curIdx) statusClass += " q-circle-active";
+        return `<div class="q-circle ${statusClass}" id="slider-circle-${idx}" onclick="jumpToQuestion(${idx})">${idx + 1}</div>`;
+      }).join('');
+
+      document.getElementById('badge-slider-row').innerHTML = createCircles();
+      if (isMatrixExpanded) {
+        document.getElementById('badge-matrix-grid').innerHTML = createCircles();
+      }
+
+      setTimeout(() => {
+        const target = document.getElementById(`slider-circle-${curIdx}`);
+        if(target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 20);
+    }
+
+    function jumpToQuestion(idx) { curIdx = idx; loadCurrentQuestion(); }
+    function nextQ() { if (curIdx < qList.length - 1) { curIdx++; loadCurrentQuestion(); } }
+    function prevQ() { if (curIdx > 0) { curIdx--; loadCurrentQuestion(); } }
+    
+    function toggleGridExpandedView() {
+      isMatrixExpanded = !isMatrixExpanded;
+      document.getElementById('expanded-matrix-panel').classList.toggle('hidden', !isMatrixExpanded);
+      renderUnifiedNavigationIndex();
+    }
+
+    function showSubjectsScreen() {
+      clearSessionCache();
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('chapter-screen').classList.add('hidden');
+      document.getElementById('subject-screen').classList.remove('hidden');
+      saveSessionState();
+    }
+
+    function goBackToChapters() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('chapter-screen').classList.remove('hidden');
+      saveSessionState();
+    }
+
+    function openSidebar() {
+      document.getElementById('sidebar-root').classList.add('sidebar-open');
+      document.getElementById('sidebar-overlay').classList.replace('pointer-events-none', 'pointer-events-auto');
+      document.getElementById('sidebar-overlay').classList.replace('opacity-0', 'opacity-100');
+      document.getElementById('sidebar-subject-title').innerText = selectedSubject;
+      
+      const chapters = Object.keys(dbData[selectedSubject] || {});
+      document.getElementById('sidebar-topic-list').innerHTML = chapters.map(name => `
+        <div onclick="closeSidebar(); startQuiz('${name.replace(/'/g, "\\'")}')" class="p-3 rounded-xl border cursor-pointer text-sm transition-all ${name === selectedChapter ? 'bg-slate-900 border-slate-900 text-white font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}">
+          ${name}
+        </div>`).join('');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar-root').classList.remove('sidebar-open');
+      document.getElementById('sidebar-overlay').classList.replace('pointer-events-auto', 'pointer-events-none');
+      document.getElementById('sidebar-overlay').classList.replace('opacity-100', 'opacity-0');
+    }
+
+    function saveSessionState() {
+      const state = { selectedSubject, selectedChapter, curIdx, userAnswers, currentScreen: getCurrentScreenName() };
+      localStorage.setItem('gh_quiz_session', JSON.stringify(state));
+    }
+
+    function getCurrentScreenName() {
+      if (!document.getElementById('quiz-screen').classList.contains('hidden')) return 'quiz';
+      if (!document.getElementById('chapter-screen').classList.contains('hidden')) return 'chapter';
+      return 'subject';
+    }
+
+    function restoreSavedSession() {
+      try {
+        const state = JSON.parse(localStorage.getItem('gh_quiz_session'));
+        if (!state) return;
+        if (state.selectedSubject) selectedSubject = state.selectedSubject;
+        if (state.selectedChapter) selectedChapter = state.selectedChapter;
+        if (state.userAnswers) userAnswers = state.userAnswers;
+        if (state.curIdx !== undefined) curIdx = state.curIdx;
+
+        if (state.currentScreen === 'chapter' && selectedSubject) selectSubject(selectedSubject);
+        else if (state.currentScreen === 'quiz' && selectedSubject && selectedChapter) {
+          qList = dbData[selectedSubject][selectedChapter] || [];
+          document.getElementById('subject-screen').classList.add('hidden');
+          document.getElementById('quiz-screen').classList.remove('hidden');
+          document.getElementById('header-subject-name').innerText = selectedSubject;
+          document.getElementById('header-topic-name').innerText = selectedChapter;
+          document.getElementById('score-total').innerText = qList.length;
+          updateScores();
+          loadCurrentQuestion();
+        }
+      } catch (e) { clearSessionCache(); }
+    }
+
+    function clearSessionCache() { localStorage.removeItem('gh_quiz_session'); userAnswers = {}; curIdx = 0; }
+    function setupSwipeGestures() {
+      const card = document.getElementById('quiz-card');
+      card.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+      card.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; const diff = touchStartX - touchEndX; if (Math.abs(diff) > 60) { if (diff > 0) nextQ(); else prevQ(); } }, { passive: true });
+    }
+  </script>
+</body>
+</html>
