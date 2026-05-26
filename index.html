@@ -3,47 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UP GK Master Pro (GitHub Edition)</title>
+  <title>UP GK Master Pro (GitHub Premium Edition)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfd; touch-action: pan-y; }
-    .bento-card { background: white; border-radius: 24px; border: 1px solid #f1f1f1; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.2s ease, color 0.2s ease; touch-action: pan-y; }
+    .bento-card { background: white; border-radius: 24px; border: 1px solid #f1f1f1; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease; }
+    .dark .bento-card { background: #1e293b; border-color: #334155; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    
     .option-row { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px; border: 2px solid #f8f9fa; cursor: pointer; background: #f8f9fa; margin-bottom: 8px; transition: all 0.2s ease; }
+    .dark .option-row { background: #334155; border-color: #475569; }
     .option-row:hover { border-color: #cbd5e1; background: #f1f5f9; }
+    .dark .option-row:hover { border-color: #64748b; background: #475569; }
+    
     .selected-correct { border-color: #22c55e !important; background: #f0fdf4 !important; pointer-events: none; }
+    .dark .selected-correct { border-color: #22c55e !important; background: #14532d !important; }
     .selected-wrong { border-color: #ef4444 !important; background: #fef2f2 !important; pointer-events: none; }
+    .dark .selected-wrong { border-color: #ef4444 !important; background: #451a03 !important; }
+    
     .nav-btn { background: #1a1a1a; color: white; padding: 12px 20px; border-radius: 12px; font-weight: 700; transition: opacity 0.2s; }
+    .dark .nav-btn { background: #f8fafc; color: #0f172a; }
     .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    
     .shimmer { height: 24px; background: #eeeeee; border-radius: 8px; animation: pulse 1.5s infinite; }
+    .dark .shimmer { background: #334155; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     
     .q-circle { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 28px; border-radius: 50%; font-size: 10px; font-weight: 800; border: 2px solid #f1f5f9; background: white; color: #64748b; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+    .dark .q-circle { background: #1e293b; border-color: #334155; color: #94a3b8; }
     .q-circle:hover { border-color: #cbd5e1; color: #1e293b; }
+    .dark .q-circle:hover { border-color: #475569; color: #f1f5f9; }
+    
     .q-circle-active { border-color: #0f172a !important; color: #0f172a !important; font-weight: 900; transform: scale(1.05); }
+    .dark .q-circle-active { border-color: #f1f5f9 !important; color: #f1f5f9 !important; }
+    
     .q-circle-correct { background: #dcfce7 !important; border-color: #bbf7d0 !important; color: #166534 !important; }
+    .dark .q-circle-correct { background: #166534 !important; border-color: #15803d !important; color: #bbf7d0 !important; }
     .q-circle-wrong { background: #fee2e2 !important; border-color: #fecaca !important; color: #991b1b !important; }
+    .dark .q-circle-wrong { background: #7f1d1d !important; border-color: #991b1b !important; color: #fecaca !important; }
     
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scroll-scrollbar-width: none; }
+    
     .swipe-zone { position: relative; user-select: none; }
     .sidebar-overlay { background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(4px); transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     .sidebar-drawer { transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     .sidebar-open .sidebar-drawer { transform: translateX(0); }
+    
+    .header-icon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 14px; border: 1px solid #e2e8f0; background: #ffffff; transition: all 0.2s; }
+    .dark .header-icon-btn { border-color: #334155; background: #1e293b; }
+    .header-icon-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .dark .header-icon-btn:hover { background: #334155; border-color: #475569; }
   </style>
 </head>
-<body class="p-4 md:p-6">
+<body class="p-4 md:p-6 bg-[#fcfcfd] text-slate-800 dark:bg-[#0f172a] dark:text-slate-100">
 
-  <!-- SIDEBAR MENU DRAWER -->
   <div id="sidebar-root" class="fixed inset-0 z-50 pointer-events-none">
     <div id="sidebar-overlay" onclick="closeSidebar()" class="sidebar-overlay absolute inset-0 opacity-0 pointer-events-none"></div>
-    <div class="sidebar-drawer absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl border-r border-slate-100 flex flex-col pointer-events-auto p-5">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+    <div class="sidebar-drawer absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-[#1e293b] shadow-2xl border-r border-slate-100 dark:border-slate-800 flex flex-col pointer-events-auto p-5">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
         <div>
           <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Switch Topic</h3>
-          <p id="sidebar-subject-title" class="text-sm font-bold text-slate-700 truncate max-w-[180px]">...</p>
+          <p id="sidebar-subject-title" class="text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-[180px]">...</p>
         </div>
-        <button onclick="closeSidebar()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+        <button onclick="closeSidebar()" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-lg">✕</button>
       </div>
       <div id="sidebar-topic-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-sm"></div>
     </div>
@@ -51,10 +79,40 @@
 
   <div id="app" class="max-w-xl mx-auto">
     
-    <!-- SCREEN 1: Subject Browser -->
+    <div class="flex justify-between items-center mb-6 gap-2">
+      <div class="min-w-0 flex-1">
+        <div id="header-breadcrumbs" class="hidden text-xs text-blue-500 font-bold mb-1 flex items-center gap-1">
+          <button id="header-back-indicator-btn" onclick="triggerContextBackRouting()">← Go Back</button>
+        </div>
+        <h1 id="app-dynamic-main-title" class="text-xl font-extrabold text-slate-800 dark:text-slate-100 truncate">Select Subject</h1>
+        <p id="app-dynamic-sub-title" class="text-xs text-slate-400 truncate">Choose a subject worksheet tab to begin</p>
+      </div>
+      
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="toggleAudioMute()" class="header-icon-btn text-slate-600 dark:text-slate-300" title="Toggle Sound">
+          <span id="sound-icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+            </svg>
+          </span>
+          <span id="sound-text-label" class="text-[8px] font-extrabold uppercase tracking-wide mt-1 scale-[0.9]">Sound</span>
+        </button>
+
+        <button onclick="toggleDarkMode()" class="header-icon-btn text-slate-600 dark:text-slate-300" title="Toggle Theme">
+          <span id="theme-icon-container"></span>
+          <span id="theme-text-label" class="text-[8px] font-extrabold uppercase tracking-wide mt-1 scale-[0.9]">Dark</span>
+        </button>
+
+        <button onclick="showSubjectsScreen()" class="header-icon-btn text-slate-600 dark:text-slate-300" title="Go Home">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          <span class="text-[8px] font-extrabold uppercase tracking-wide mt-1 scale-[0.9]">Home</span>
+        </button>
+      </div>
+    </div>
+
     <div id="subject-screen">
-      <h2 class="text-xl font-extrabold mb-2 text-slate-800">Select Subject</h2>
-      <p class="text-xs text-slate-400 mb-6">Choose a domain worksheet to begin</p>
       <div id="subject-grid" class="space-y-3">
         <div class="space-y-2">
           <div class="shimmer h-16 w-full"></div>
@@ -63,44 +121,30 @@
       </div>
     </div>
 
-    <!-- SCREEN 2: Chapter Browser -->
     <div id="chapter-screen" class="hidden">
-      <div class="mb-6 flex justify-between items-center">
-        <div>
-          <button onclick="showSubjectsScreen()" class="text-xs text-blue-500 font-bold mb-1 flex items-center gap-1">← Change Subject</button>
-          <h2 id="chapter-screen-title" class="text-xl font-extrabold text-slate-800">Topics</h2>
-        </div>
-        <button onclick="showSubjectsScreen()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-600" title="Return Home">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-[18px] h-[18px]">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-          </svg>
-          <span class="text-[8px] font-extrabold tracking-wider uppercase mt-[1px] text-slate-500">Home</span>
-        </button>
-      </div>
       <div id="chapter-grid" class="space-y-3"></div>
     </div>
 
-    <!-- SCREEN 3: Quiz Panel -->
     <div id="quiz-screen" class="hidden">
+      
       <div class="flex items-center gap-3 mb-4">
-        <button onclick="openSidebar()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all gap-[4px]" title="Open Menu">
-          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
-          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
-          <span class="w-4 h-[2px] bg-slate-600 rounded-full"></span>
+        <button onclick="openSidebar()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition gap-[4px]" title="Quick View Drawer">
+          <span class="w-4 h-[2px] bg-slate-600 dark:bg-slate-400 rounded-full"></span>
+          <span class="w-4 h-[2px] bg-slate-600 dark:bg-slate-400 rounded-full"></span>
+          <span class="w-4 h-[2px] bg-slate-600 dark:bg-slate-400 rounded-full"></span>
         </button>
+        
         <div class="flex-1 min-w-0">
-          <h1 id="header-subject-name" class="text-base font-extrabold text-slate-800 truncate leading-tight">Subject Title</h1>
-          <p id="header-topic-name" class="text-xs text-slate-400 font-medium truncate">Topic Sub-Header</p>
+          <h2 id="header-subject-name" class="text-sm font-extrabold text-slate-500 dark:text-slate-400 truncate uppercase tracking-wider leading-none">Subject</h2>
+          <p id="header-topic-name" class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Topic</p>
         </div>
-        <button onclick="showSubjectsScreen()" class="w-11 h-11 flex flex-col items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 transition-all text-slate-600" title="Return Home">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" class="w-[18px] h-[18px]">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-          </svg>
-          <span class="text-[8px] font-extrabold tracking-wider uppercase mt-[1px] text-slate-500">Home</span>
-        </button>
+
+        <div class="flex items-center shrink-0">
+          <button onclick="changeFontSize(-1)" class="w-9 h-11 border border-slate-200 dark:border-slate-700 rounded-l-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold" title="Decrease Font">A⁻</button>
+          <button onclick="changeFontSize(1)" class="w-9 h-11 border-y border-r border-slate-200 dark:border-slate-700 rounded-r-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold" title="Increase Font">A⁺</button>
+        </div>
       </div>
 
-      <!-- Scoreboard Container -->
       <div class="grid grid-cols-3 gap-2.5 mb-3.5">
         <div class="bento-card p-2 text-center border-b-[3px] border-b-green-500">
           <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Correct</p>
@@ -116,39 +160,37 @@
         </div>
       </div>
 
-      <!-- Slider Row Index -->
-      <div class="bento-card p-3 mb-4 bg-slate-50 relative">
+      <div class="bento-card p-3 mb-4 bg-slate-50 dark:bg-slate-800/50 relative">
         <div class="flex items-center justify-between gap-2">
           <div id="badge-row-container" class="flex-1 overflow-x-auto no-scrollbar py-1">
             <div id="badge-slider-row" class="flex gap-1.5 items-center"></div>
           </div>
-          <button onclick="toggleGridExpandedView()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 font-bold">⋮</button>
+          <button onclick="toggleGridExpandedView()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-lg font-bold transition">⋮</button>
         </div>
-        <div id="expanded-matrix-panel" class="hidden mt-3 pt-3 border-t border-slate-200">
+
+        <div id="expanded-matrix-panel" class="hidden mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
           <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Expanded Grid Index</p>
           <div id="badge-matrix-grid" class="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto pr-1"></div>
         </div>
       </div>
 
-      <!-- Live Quiz Card -->
       <div id="quiz-card" class="bento-card p-6 md:p-8 mb-6 swipe-zone">
         <div id="exam-tag" class="text-[10px] text-blue-500 font-bold mb-1 italic tracking-wide"></div>
         <div id="q-label" class="text-[11px] font-bold text-slate-400 mb-3 tracking-wider"></div>
-        <h2 id="q-text" class="text-lg font-bold leading-snug mb-8 text-slate-800"></h2>
-        <div id="options-grid"></div>
-        <div id="explanation-box" class="hidden mt-6 p-5 bg-blue-50 rounded-2xl border border-blue-100 text-xs text-slate-600 leading-relaxed"></div>
+        <h2 id="q-text" class="font-bold leading-snug mb-8 text-slate-800 dark:text-slate-100 transition-all"></h2>
+        <div id="options-grid" class="transition-all"></div>
+        <div id="explanation-box" class="hidden mt-6 p-5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/50 text-xs text-slate-600 dark:text-slate-300 leading-relaxed"></div>
       </div>
 
       <div class="flex justify-between gap-3">
-        <button id="prev-btn" onclick="prevQ()" class="nav-btn !bg-slate-100 !text-slate-500">← Prev</button>
+        <button id="prev-btn" onclick="prevQ()" class="nav-btn !bg-slate-100 dark:!bg-slate-800 !text-slate-500 dark:!text-slate-400">← Prev</button>
         <button id="next-btn" onclick="nextQ()" class="nav-btn flex-1">Next →</button>
       </div>
-      <button onclick="goBackToChapters()" class="w-full mt-8 py-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest border-t border-dashed border-slate-200 hover:text-slate-600">Back to Topics</button>
+      <button onclick="triggerContextBackRouting()" class="w-full mt-8 py-4 text-slate-400 text-[11px] font-bold uppercase tracking-widest border-t border-dashed border-slate-200 dark:border-slate-800 hover:text-slate-600 dark:hover:text-slate-300">Back to Topics</button>
     </div>
   </div>
 
   <script>
-    // Configured to automatically target data.json relative file inside GitHub repo directory
     const JSON_DATABASE_URL = "data.json"; 
 
     let dbData = null;
@@ -161,8 +203,45 @@
     let touchStartX = 0;
     let touchEndX = 0;
     let isMatrixExpanded = false;
+    let fontSizeLevel = parseInt(localStorage.getItem('font_size_lvl')) || 0; 
+    let audioMuted = localStorage.getItem('audio_muted') === 'true';
+
+    // Core AudioContext Audio Engine Synth
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeepSound(type) {
+      if (audioMuted) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'correct') {
+          osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); 
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        } else if (type === 'wrong') {
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime); 
+          osc.type = 'sawtooth';
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        } else {
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime); 
+          gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+      } catch(e){}
+    }
 
     window.onload = () => {
+      if(localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+      
+      updateMuteIconsUI();
+      updateThemeLabelsAndIconsUI();
+      applyFontSizeStyles();
       setupSwipeGestures();
       initializeSystemDatabase();
     };
@@ -170,41 +249,222 @@
     function initializeSystemDatabase() {
       fetch(JSON_DATABASE_URL)
         .then(res => {
-          if(!res.ok) throw new Error("Database JSON structural network link down");
+          if(!res.ok) throw new Error("Database network link down");
           return res.json();
         })
         .then(payload => {
           dbData = payload;
+          
+          // Persistence Validation Module for active quiz sessions
+          const savedSession = sessionStorage.getItem('gh_quiz_session');
+          if (savedSession) {
+            try {
+              const sessionData = JSON.parse(savedSession);
+              if (sessionData.currentScreen === 'quiz' && sessionData.selectedSubject && sessionData.selectedChapter) {
+                selectedSubject = sessionData.selectedSubject;
+                selectedChapter = sessionData.selectedChapter;
+                userAnswers = sessionData.userAnswers || {};
+                curIdx = sessionData.curIdx || 0;
+                
+                qList = dbData[selectedSubject][selectedChapter] || [];
+                
+                window.history.replaceState({ screen: 'quiz' }, '');
+                applyNavigationTransitionEffects('quiz');
+                
+                document.getElementById('header-subject-name').innerText = selectedSubject;
+                document.getElementById('header-topic-name').innerText = selectedChapter;
+                document.getElementById('score-total').innerText = qList.length;
+                
+                updateScores();
+                loadCurrentQuestion();
+                renderSubjectsEngine(); 
+                return;
+              }
+            } catch(e) {
+              clearSessionCache();
+            }
+          }
+
+          // Force fresh home render if zero session caches are active
+          clearSessionCache();
           renderSubjectsEngine();
-          restoreSavedSession();
+          window.history.replaceState({ screen: 'subject' }, '');
+          evaluateDynamicHeaderTitles('subject');
         })
         .catch(err => {
           console.error(err);
           document.getElementById('subject-grid').innerHTML = `
             <div class="p-5 bg-red-50 text-red-600 rounded-2xl border border-red-200 text-xs">
               <p class="font-bold mb-1 text-sm">Failed to Load data.json Database</p>
-              <p>Make sure your file is formatted correctly and committed to the same folder as index.html.</p>
+              <p>Verify document syntax parsing profiles are uncorrupted.</p>
             </div>`;
         });
+    }
+
+    window.onpopstate = (event) => {
+      if (!event.state) return;
+      applyNavigationTransitionEffects(event.state.screen);
+    };
+
+    function triggerContextBackRouting() {
+      playBeepSound('tap');
+      window.history.back();
+    }
+
+    function applyNavigationTransitionEffects(targetScreen) {
+      const sub = document.getElementById('subject-screen');
+      const ch = document.getElementById('chapter-screen');
+      const qz = document.getElementById('quiz-screen');
+
+      sub.classList.add('hidden');
+      ch.classList.add('hidden');
+      qz.classList.add('hidden');
+
+      if (targetScreen === 'subject') {
+        clearSessionCache();
+        sub.classList.remove('hidden');
+      } else if (targetScreen === 'chapter') {
+        sessionStorage.removeItem('gh_quiz_session');
+        ch.classList.remove('hidden');
+      } else if (targetScreen === 'quiz') {
+        qz.classList.remove('hidden');
+      }
+      evaluateDynamicHeaderTitles(targetScreen);
+    }
+
+    function evaluateDynamicHeaderTitles(screenKey) {
+      const crumbs = document.getElementById('header-breadcrumbs');
+      const mainTitle = document.getElementById('app-dynamic-main-title');
+      const subTitle = document.getElementById('app-dynamic-sub-title');
+      const backIndicator = document.getElementById('header-back-indicator-btn');
+
+      if(screenKey === 'subject') {
+        crumbs.classList.add('hidden');
+        mainTitle.innerText = "Select Subject";
+        subTitle.innerText = "Choose a subject domain path to initiate";
+      } else if(screenKey === 'chapter') {
+        crumbs.classList.remove('hidden');
+        backIndicator.innerText = "← Change Subject";
+        mainTitle.innerText = selectedSubject || "Topics";
+        subTitle.innerText = "Select a specific sub-topic study track configuration";
+      } else if(screenKey === 'quiz') {
+        crumbs.classList.remove('hidden');
+        backIndicator.innerText = "← Back to Topics";
+        mainTitle.innerText = selectedChapter || "Assessment Mode";
+        subTitle.innerText = "Answer questions smoothly. Swipe card templates to jump pages.";
+      }
+    }
+
+    function toggleDarkMode() {
+      playBeepSound('tap');
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      updateThemeLabelsAndIconsUI();
+    }
+
+    function updateThemeLabelsAndIconsUI() {
+      const iconContainer = document.getElementById('theme-icon-container');
+      const textLabel = document.getElementById('theme-text-label');
+      
+      if (document.documentElement.classList.contains('dark')) {
+        textLabel.innerText = "Light";
+        iconContainer.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-amber-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M5.147 5.147l1.591 1.591M15.662 15.662l1.591 1.591M3 12h2.25m13.5 0H21M5.147 18.853l1.591-1.591M15.662 6.75l1.591-1.591M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" />
+          </svg>
+        `;
+      } else {
+        textLabel.innerText = "Dark";
+        iconContainer.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+        `;
+      }
+    }
+
+    function toggleAudioMute() {
+      audioMuted = !audioMuted;
+      localStorage.setItem('audio_muted', audioMuted);
+      updateMuteIconsUI();
+      playBeepSound('tap');
+    }
+
+    function updateMuteIconsUI() {
+      const iconContainer = document.getElementById('sound-icon-container');
+      const textLabel = document.getElementById('sound-text-label');
+      
+      if(audioMuted) {
+        textLabel.innerText = "Mute";
+        iconContainer.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-red-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6 4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+          </svg>
+        `;
+      } else {
+        textLabel.innerText = "Sound";
+        iconContainer.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+          </svg>
+        `;
+      }
+    }
+
+    function changeFontSize(direction) {
+      playBeepSound('tap');
+      fontSizeLevel = Math.max(-1, Math.min(2, fontSizeLevel + direction));
+      localStorage.setItem('font_size_lvl', fontSizeLevel);
+      applyFontSizeStyles();
+    }
+
+    function applyFontSizeStyles() {
+      const qText = document.getElementById('q-text');
+      const optGrid = document.getElementById('options-grid');
+      if(!qText || !optGrid) return;
+      
+      qText.classList.remove('text-sm', 'text-base', 'text-lg', 'text-xl', 'text-2xl');
+      optGrid.classList.remove('text-xs', 'text-sm', 'text-base', 'text-lg');
+
+      if (fontSizeLevel === -1) {
+        qText.classList.add('text-base'); optGrid.classList.add('text-xs');
+      } else if (fontSizeLevel === 1) {
+        qText.classList.add('text-xl'); optGrid.classList.add('text-base');
+      } else if (fontSizeLevel === 2) {
+        qText.classList.add('text-2xl'); optGrid.classList.add('text-lg');
+      } else {
+        qText.classList.add('text-lg'); optGrid.classList.add('text-sm');
+      }
     }
 
     function renderSubjectsEngine() {
       const subjectNames = Object.keys(dbData || {});
       if(subjectNames.length === 0) return;
       document.getElementById('subject-grid').innerHTML = subjectNames.map(name => `
-        <div onclick="clearSessionCache(); selectSubject('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white group transition-all">
-          <span class="font-bold text-sm text-slate-700 group-hover:text-blue-600">${name}</span>
+        <div onclick="clearSessionCache(); selectSubject('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white dark:bg-slate-800 group transition-all">
+          <span class="font-bold text-sm text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">${name}</span>
           <span class="text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1">→</span>
         </div>
       `).join('');
     }
 
+    function showSubjectsScreen() {
+      playBeepSound('tap');
+      clearSessionCache();
+      window.history.pushState({ screen: 'subject' }, '');
+      applyNavigationTransitionEffects('subject');
+      renderSubjectsEngine();
+    }
+
     function selectSubject(subjectName) {
       selectedSubject = subjectName;
-      document.getElementById('subject-screen').classList.add('hidden');
-      document.getElementById('quiz-screen').classList.add('hidden');
-      document.getElementById('chapter-screen').classList.remove('hidden');
-      document.getElementById('chapter-screen-title').innerText = `${subjectName} - Topics`;
+      window.history.pushState({ screen: 'chapter' }, '');
+      applyNavigationTransitionEffects('chapter');
       
       const chapters = Object.keys(dbData[subjectName] || {});
       if (chapters.length === 0) {
@@ -212,22 +472,22 @@
         return;
       }
       document.getElementById('chapter-grid').innerHTML = chapters.map(name => `
-        <div onclick="startQuiz('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white group transition-all">
-          <span class="font-bold text-sm text-slate-700 group-hover:text-blue-600">${name}</span>
+        <div onclick="startQuiz('${name.replace(/'/g, "\\'")}')" class="bento-card p-5 flex justify-between items-center cursor-pointer hover:border-blue-400 bg-white dark:bg-slate-800 group transition-all">
+          <span class="font-bold text-sm text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">${name}</span>
           <span class="text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1">→</span>
         </div>
       `).join('');
-      saveSessionState();
     }
 
     function startQuiz(chapterName) {
+      playBeepSound('tap');
       selectedChapter = chapterName;
       qList = dbData[selectedSubject][chapterName] || [];
       curIdx = 0; userAnswers = {}; isMatrixExpanded = false;
       
       document.getElementById('expanded-matrix-panel').classList.add('hidden');
-      document.getElementById('chapter-screen').classList.add('hidden');
-      document.getElementById('quiz-screen').classList.remove('hidden');
+      window.history.pushState({ screen: 'quiz' }, '');
+      applyNavigationTransitionEffects('quiz');
       
       document.getElementById('header-subject-name').innerText = selectedSubject;
       document.getElementById('header-topic-name').innerText = selectedChapter;
@@ -250,6 +510,7 @@
       
       const grid = document.getElementById('options-grid');
       grid.innerHTML = '';
+      applyFontSizeStyles();
       
       ['OptionA', 'OptionB', 'OptionC', 'OptionD', 'OptionE'].forEach((key, i) => {
         const val = data[key];
@@ -257,7 +518,7 @@
           const letter = String.fromCharCode(65 + i);
           const div = document.createElement('div');
           div.className = 'option-row';
-          div.innerHTML = `<span class="text-sm font-semibold text-slate-700">${val}</span>`;
+          div.innerHTML = `<span class="font-semibold text-slate-700 dark:text-slate-200">${val}</span>`;
           
           if (userAnswers[curIdx]) {
             if (letter === data.Answer) div.classList.add('selected-correct');
@@ -266,6 +527,7 @@
           } else {
             div.onclick = () => { 
               userAnswers[curIdx] = letter; 
+              if (letter === data.Answer) playBeepSound('correct'); else playBeepSound('wrong');
               updateScores(); 
               loadCurrentQuestion();
             };
@@ -275,7 +537,7 @@
       });
 
       renderUnifiedNavigationIndex();
-      saveSessionState();
+      saveSessionState('quiz');
     }
 
     function showExp(text) {
@@ -312,31 +574,19 @@
       }, 20);
     }
 
-    function jumpToQuestion(idx) { curIdx = idx; loadCurrentQuestion(); }
-    function nextQ() { if (curIdx < qList.length - 1) { curIdx++; loadCurrentQuestion(); } }
-    function prevQ() { if (curIdx > 0) { curIdx--; loadCurrentQuestion(); } }
+    function jumpToQuestion(idx) { playBeepSound('tap'); curIdx = idx; loadCurrentQuestion(); }
+    function nextQ() { if (curIdx < qList.length - 1) { playBeepSound('tap'); curIdx++; loadCurrentQuestion(); } }
+    function prevQ() { if (curIdx > 0) { playBeepSound('tap'); curIdx--; loadCurrentQuestion(); } }
     
     function toggleGridExpandedView() {
+      playBeepSound('tap');
       isMatrixExpanded = !isMatrixExpanded;
       document.getElementById('expanded-matrix-panel').classList.toggle('hidden', !isMatrixExpanded);
       renderUnifiedNavigationIndex();
     }
 
-    function showSubjectsScreen() {
-      clearSessionCache();
-      document.getElementById('quiz-screen').classList.add('hidden');
-      document.getElementById('chapter-screen').classList.add('hidden');
-      document.getElementById('subject-screen').classList.remove('hidden');
-      saveSessionState();
-    }
-
-    function goBackToChapters() {
-      document.getElementById('quiz-screen').classList.add('hidden');
-      document.getElementById('chapter-screen').classList.remove('hidden');
-      saveSessionState();
-    }
-
     function openSidebar() {
+      playBeepSound('tap');
       document.getElementById('sidebar-root').classList.add('sidebar-open');
       document.getElementById('sidebar-overlay').classList.replace('pointer-events-none', 'pointer-events-auto');
       document.getElementById('sidebar-overlay').classList.replace('opacity-0', 'opacity-100');
@@ -344,7 +594,7 @@
       
       const chapters = Object.keys(dbData[selectedSubject] || {});
       document.getElementById('sidebar-topic-list').innerHTML = chapters.map(name => `
-        <div onclick="closeSidebar(); startQuiz('${name.replace(/'/g, "\\'")}')" class="p-3 rounded-xl border cursor-pointer text-sm transition-all ${name === selectedChapter ? 'bg-slate-900 border-slate-900 text-white font-bold' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'}">
+        <div onclick="closeSidebar(); startQuiz('${name.replace(/'/g, "\\'")}')" class="p-3 rounded-xl border cursor-pointer text-sm transition-all ${name === selectedChapter ? 'bg-slate-900 border-slate-900 dark:bg-slate-100 dark:border-slate-100 text-white dark:text-[#0f172a] font-bold' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">
           ${name}
         </div>`).join('');
     }
@@ -355,41 +605,14 @@
       document.getElementById('sidebar-overlay').classList.replace('opacity-100', 'opacity-0');
     }
 
-    function saveSessionState() {
-      const state = { selectedSubject, selectedChapter, curIdx, userAnswers, currentScreen: getCurrentScreenName() };
-      localStorage.setItem('gh_quiz_session', JSON.stringify(state));
+    function saveSessionState(screenContextName) {
+      if (screenContextName === 'quiz' && qList.length > 0) {
+        const state = { selectedSubject, selectedChapter, curIdx, userAnswers, currentScreen: screenContextName };
+        sessionStorage.setItem('gh_quiz_session', JSON.stringify(state));
+      }
     }
 
-    function getCurrentScreenName() {
-      if (!document.getElementById('quiz-screen').classList.contains('hidden')) return 'quiz';
-      if (!document.getElementById('chapter-screen').classList.contains('hidden')) return 'chapter';
-      return 'subject';
-    }
-
-    function restoreSavedSession() {
-      try {
-        const state = JSON.parse(localStorage.getItem('gh_quiz_session'));
-        if (!state) return;
-        if (state.selectedSubject) selectedSubject = state.selectedSubject;
-        if (state.selectedChapter) selectedChapter = state.selectedChapter;
-        if (state.userAnswers) userAnswers = state.userAnswers;
-        if (state.curIdx !== undefined) curIdx = state.curIdx;
-
-        if (state.currentScreen === 'chapter' && selectedSubject) selectSubject(selectedSubject);
-        else if (state.currentScreen === 'quiz' && selectedSubject && selectedChapter) {
-          qList = dbData[selectedSubject][selectedChapter] || [];
-          document.getElementById('subject-screen').classList.add('hidden');
-          document.getElementById('quiz-screen').classList.remove('hidden');
-          document.getElementById('header-subject-name').innerText = selectedSubject;
-          document.getElementById('header-topic-name').innerText = selectedChapter;
-          document.getElementById('score-total').innerText = qList.length;
-          updateScores();
-          loadCurrentQuestion();
-        }
-      } catch (e) { clearSessionCache(); }
-    }
-
-    function clearSessionCache() { localStorage.removeItem('gh_quiz_session'); userAnswers = {}; curIdx = 0; }
+    function clearSessionCache() { sessionStorage.removeItem('gh_quiz_session'); userAnswers = {}; curIdx = 0; }
     function setupSwipeGestures() {
       const card = document.getElementById('quiz-card');
       card.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
