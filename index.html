@@ -206,11 +206,29 @@
     let fontSizeLevel = parseInt(localStorage.getItem('font_size_lvl')) || 0; 
     let audioMuted = localStorage.getItem('audio_muted') === 'true';
 
-    // Core AudioContext Audio Engine Synth
+    // Core AudioContext Engine
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeepSound(type) {
+    
+    // Unified Audio & Vibration Feedback Handler
+    function triggerDeviceFeedback(type) {
+      // 1. Structural Vibration Engine (API Check)
+      if (navigator.vibrate) {
+        if (type === 'correct') {
+          navigator.vibrate(50); // Sharp quick tap
+        } else if (type === 'wrong') {
+          navigator.vibrate(200); // Strong warning pulse
+        } else if (type === 'tap') {
+          navigator.vibrate(15); // Micro tactile feedback
+        }
+      }
+
+      // 2. Audio Beep Engine
       if (audioMuted) return;
       try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -226,7 +244,7 @@
           osc.type = 'sawtooth';
           gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
           osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-        } else {
+        } else if (type === 'tap') {
           osc.frequency.setValueAtTime(440, audioCtx.currentTime); 
           gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
           osc.start(); osc.stop(audioCtx.currentTime + 0.05);
@@ -255,7 +273,6 @@
         .then(payload => {
           dbData = payload;
           
-          // Persistence Validation Module for active quiz sessions
           const savedSession = sessionStorage.getItem('gh_quiz_session');
           if (savedSession) {
             try {
@@ -285,7 +302,6 @@
             }
           }
 
-          // Force fresh home render if zero session caches are active
           clearSessionCache();
           renderSubjectsEngine();
           window.history.replaceState({ screen: 'subject' }, '');
@@ -296,7 +312,7 @@
           document.getElementById('subject-grid').innerHTML = `
             <div class="p-5 bg-red-50 text-red-600 rounded-2xl border border-red-200 text-xs">
               <p class="font-bold mb-1 text-sm">Failed to Load data.json Database</p>
-              <p>Verify document syntax parsing profiles are uncorrupted.</p>
+              <p>Verify data integrity parameters inside configuration path files.</p>
             </div>`;
         });
     }
@@ -307,7 +323,7 @@
     };
 
     function triggerContextBackRouting() {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       window.history.back();
     }
 
@@ -356,7 +372,7 @@
     }
 
     function toggleDarkMode() {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       if (document.documentElement.classList.contains('dark')) {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('theme', 'light');
@@ -392,7 +408,7 @@
       audioMuted = !audioMuted;
       localStorage.setItem('audio_muted', audioMuted);
       updateMuteIconsUI();
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
     }
 
     function updateMuteIconsUI() {
@@ -417,7 +433,7 @@
     }
 
     function changeFontSize(direction) {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       fontSizeLevel = Math.max(-1, Math.min(2, fontSizeLevel + direction));
       localStorage.setItem('font_size_lvl', fontSizeLevel);
       applyFontSizeStyles();
@@ -454,7 +470,7 @@
     }
 
     function showSubjectsScreen() {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       clearSessionCache();
       window.history.pushState({ screen: 'subject' }, '');
       applyNavigationTransitionEffects('subject');
@@ -480,7 +496,7 @@
     }
 
     function startQuiz(chapterName) {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       selectedChapter = chapterName;
       qList = dbData[selectedSubject][chapterName] || [];
       curIdx = 0; userAnswers = {}; isMatrixExpanded = false;
@@ -527,7 +543,7 @@
           } else {
             div.onclick = () => { 
               userAnswers[curIdx] = letter; 
-              if (letter === data.Answer) playBeepSound('correct'); else playBeepSound('wrong');
+              if (letter === data.Answer) triggerDeviceFeedback('correct'); else triggerDeviceFeedback('wrong');
               updateScores(); 
               loadCurrentQuestion();
             };
@@ -574,19 +590,19 @@
       }, 20);
     }
 
-    function jumpToQuestion(idx) { playBeepSound('tap'); curIdx = idx; loadCurrentQuestion(); }
-    function nextQ() { if (curIdx < qList.length - 1) { playBeepSound('tap'); curIdx++; loadCurrentQuestion(); } }
-    function prevQ() { if (curIdx > 0) { playBeepSound('tap'); curIdx--; loadCurrentQuestion(); } }
+    function jumpToQuestion(idx) { triggerDeviceFeedback('tap'); curIdx = idx; loadCurrentQuestion(); }
+    function nextQ() { if (curIdx < qList.length - 1) { triggerDeviceFeedback('tap'); curIdx++; loadCurrentQuestion(); } }
+    function prevQ() { if (curIdx > 0) { triggerDeviceFeedback('tap'); curIdx--; loadCurrentQuestion(); } }
     
     function toggleGridExpandedView() {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       isMatrixExpanded = !isMatrixExpanded;
       document.getElementById('expanded-matrix-panel').classList.toggle('hidden', !isMatrixExpanded);
       renderUnifiedNavigationIndex();
     }
 
     function openSidebar() {
-      playBeepSound('tap');
+      triggerDeviceFeedback('tap');
       document.getElementById('sidebar-root').classList.add('sidebar-open');
       document.getElementById('sidebar-overlay').classList.replace('pointer-events-none', 'pointer-events-auto');
       document.getElementById('sidebar-overlay').classList.replace('opacity-0', 'opacity-100');
