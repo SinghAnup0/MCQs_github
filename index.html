@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced MCQ Engine</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* UI ELEMENT COMPONENT: Mobile Breakpoint Extension Safety 
+           Prevents horizontal column distortion on legacy responsive viewports (<380px)
+        */
+        @media (min-width: 380px) {
+            .xs\:block { display: block !important; }
+        }
+    
+        /* UI ELEMENT COMPONENT: Performance-Optimized Custom Visual Scrollbar Trailing Nodes */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 24px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        
+        /* UI ELEMENT COMPONENT: View Change Slide-Up Smooth Interpolation Frames */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-in { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        /* UI ELEMENT COMPONENT: Font Scaling Typography Sizing Maps 
+           Altered dynamically across runtimes via changeFontSize() index triggers
+        */
+        .scale-text-0 { font-size: 0.875rem; line-height: 1.25rem; } /* Compact Variant */
+        .scale-text-1 { font-size: 1rem; line-height: 1.5rem; }     /* Base Variant */
+        .scale-text-2 { font-size: 1.125rem; line-height: 1.75rem; }/* Expanded Variant */
+        .scale-text-3 { font-size: 1.25rem; line-height: 1.75rem; } /* Large Variant */
+        .scale-text-4 { font-size: 1.5rem; line-height: 2rem; }     /* Ultra-Wide Variant */
+        
+        /* Option Container Matrix Variant Remaps */
+        .scale-opt-0 { font-size: 0.75rem; }
+        .scale-opt-1 { font-size: 0.875rem; }
+        .scale-opt-2 { font-size: 1rem; }
+        .scale-opt-3 { font-size: 1.125rem; }
+        .scale-opt-4 { font-size: 1.25rem; }
+    </style>
+    
+    <script>
+        /* TAILWIND STYLING INFRASTRUCTURE: Core Custom Palette Extended Mapping Profiles */
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' } } } }
+        }
+    </script>
+</head>
+<body class="bg-[#f8fafc] text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300 overflow-x-hidden">
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="sidebar-menu" class="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-[#111827] z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col border-r border-slate-200/80 dark:border-slate-800/80">
+        <div class="p-4 border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-brand-600 dark:text-brand-400 text-sm"></i>
+                <span class="font-bold text-xs uppercase tracking-wider text-slate-400">Select Subject Chapters</span>
+            </div>
+            <button onclick="toggleSidebar()" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xs"></i></button>
+        </div>
+        <div id="sidebar-subjects-container" class="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+            <p class="text-[11px] text-slate-400 text-center py-4">Loading subject tracks...</p>
+        </div>
+    </div>
+
+    <nav class="sticky top-0 z-40 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+        
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <button onclick="toggleSidebar()" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95">
+                <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+            <div class="flex items-center gap-1.5 cursor-pointer select-none" onclick="clearAndGoHome()">
+                <span class="font-extrabold text-xs sm:text-sm tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                    ExamPrep <span class="text-brand-600 dark:text-brand-400 font-medium text-[10px] sm:text-xs">AI Engine</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1 sm:gap-2">
+            
+            <div class="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/40 rounded-xl p-0.5 shadow-sm">
+                <button onclick="changeFontSize(-1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] font-extrabold text-slate-500 hover:bg-white dark:hover:bg-slate-800 dark:text-slate-400 flex items-center justify-center transition-all">A-</button>
+                <span class="w-[1px] h-3 bg-slate-200 dark:bg-slate-800"></span>
+                <button onclick="changeFontSize(1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] font-extrabold text-slate-500 hover:bg-white dark:hover:bg-slate-800 dark:text-slate-400 flex items-center justify-center transition-all">A+</button>
+            </div>
+
+            <div class="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/40 rounded-xl p-0.5 shadow-sm">
+                <button id="lang-btn-en" onclick="toggleLanguage('en')" class="px-2 h-7 sm:h-8 rounded-lg text-[10px] font-black transition-all">EN</button>
+                <span class="w-[1px] h-3 bg-slate-200 dark:bg-slate-800"></span>
+                <button id="lang-btn-hi" onclick="toggleLanguage('hi')" class="px-2 h-7 sm:h-8 rounded-lg text-[10px] font-black transition-all">HI</button>
+            </div>
+
+            <button id="silent-btn" onclick="toggleHaptics()" class="h-8 w-8 sm:w-auto sm:px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all border border-transparent shadow-sm">
+            </button>
+
+            <button onclick="toggleDarkMode()" class="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-500 border border-slate-200/40 dark:border-slate-800/40 dark:text-slate-400 flex items-center justify-center transition-all shadow-sm active:scale-95">
+                <i id="theme-icon" class="fa-solid fa-moon text-xs"></i>
+            </button>
+        </div>
+
+    </div>
+    </nav>
+
+    <div class="flex-1 max-w-5xl w-full mx-auto px-4 py-8 relative">
+        
+        <div id="global-loader" class="hidden absolute inset-0 bg-[#f8fafc]/60 dark:bg-[#0b0f19]/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div class="flex flex-col items-center gap-3 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800">
+                <div class="w-9 h-9 border-4 border-brand-500/20 border-t-brand-600 rounded-full animate-spin"></div>
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Syncing database node...</span>
+            </div>
+        </div>
+
+        <section id="view-subjects" class="space-y-6 hidden animate-slide-in">
+            <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-4">
+                <h2 class="text-xl font-extrabold text-slate-950 dark:text-white">Knowledge Repositories</h2>
+                <p class="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">Select a core matrix track below to review operational chapters</p>
+            </div>
+            <div id="subjects-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section id="view-chapters" class="space-y-6 hidden animate-slide-in">
+            <div class="flex items-center gap-3">
+                <button onclick="triggerHapticFeedback(15); goBackToSubjects()" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-500 transition-colors"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+                <div>
+                    <h2 id="current-subject-title" class="text-xl font-extrabold text-slate-950 dark:text-white">Chapters</h2>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">Select a sub-specialization division to pull questions</p>
+                </div>
+            </div>
+            <div id="chapters-container" class="grid grid-cols-1 gap-3"></div>
+        </section>
+
+        <section id="view-quiz" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-in">
+            <div class="lg:col-span-2 space-y-6">
+                <div id="quiz-card-container" class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-6 rounded-3xl shadow-sm space-y-5 touch-pan-y">
+                    
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-400 dark:text-slate-500">
+                        <span id="quiz-chapter-indicator" class="truncate pr-4">CHAPTER LOAD TRACK</span>
+                        <span id="quiz-question-counter" class="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-brand-600 dark:text-brand-400 whitespace-nowrap">Q 0/0</span>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-800/60 -mt-2">
+                        <div class="flex items-center gap-5 text-xs font-bold">
+                            <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-100/50 dark:bg-emerald-950/40 px-2 py-1 rounded-lg">
+                                <i class="fa-solid fa-check text-[10px]"></i> <span id="score-live-correct">0</span>
+                            </span>
+                            <span class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 bg-rose-100/50 dark:bg-rose-950/40 px-2 py-1 rounded-lg">
+                                <i class="fa-solid fa-xmark text-[10px]"></i> <span id="score-live-wrong">0</span>
+                            </span>
+                            <span class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-700/40 px-2 py-1 rounded-lg">
+                                <i class="fa-solid fa-forward-step text-[10px]"></i> <span id="score-live-skipped">0</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-brand-600 dark:text-brand-400 font-extrabold text-xs bg-brand-50 dark:bg-brand-950/30 px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-crosshairs text-[10px]"></i> <span id="score-live-percent">0</span>%
+                        </div>
+                    </div>
+
+                    <div class="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full">
+                        <div id="quiz-progress-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <div class="space-y-4 pt-1">
+                        <div id="exam-source-indicator" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider mb-2 border border-indigo-100 dark:border-indigo-900/50">
+                            <i class="fa-solid fa-bookmark"></i> <span id="exam-source-text"></span>
+                        </div>
+                        
+                        <h3 id="question-text" class="font-bold text-slate-900 dark:text-slate-100 scale-text-1 transition-all duration-200">Loading evaluation criteria...</h3>
+                        <div id="options-container" class="space-y-3 pt-2"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/60 gap-2 flex-wrap">
+                        <button onclick="changeQuestion(-1)" id="btn-prev" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all flex items-center gap-2"><i class="fa-solid fa-chevron-left text-[10px]"></i> Prev</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="triggerHapticFeedback(10); toggleExplanation()" id="btn-explain" class="px-4 py-2 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200/60 hover:bg-amber-100 rounded-xl dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/40 transition-all flex items-center gap-2"><i class="fa-solid fa-lightbulb"></i> Analysis</button>
+                            <button onclick="changeQuestion(1)" id="btn-next" class="px-4 py-2 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm shadow-brand-500/10 rounded-xl transition-all flex items-center gap-2">Next <i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="explanation-panel" class="hidden bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 p-6 rounded-3xl animate-slide-in">
+                    <h4 class="text-xs font-extrabold text-emerald-800 dark:text-emerald-400 flex items-center gap-2 uppercase tracking-wider mb-2"><i class="fa-solid fa-circle-info"></i> Detailed Solution Matrix</h4>
+                    <p id="explanation-text" class="text-xs leading-relaxed font-medium text-slate-600 dark:text-slate-300 scale-text-0 transition-all duration-200"></p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-5 rounded-3xl shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Evaluation Index</h4>
+                        <button onclick="triggerHapticFeedback(25); submitQuizEvaluationReport()" class="px-3 py-1.5 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-400 text-[11px] font-bold rounded-lg transition-all">End Review</button>
+                    </div>
+                    <div id="question-matrix-grid" class="grid grid-cols-5 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-results" class="hidden max-w-4xl mx-auto px-4 py-6">
+            <div class="bg-gradient-to-br from-brand-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl mb-6 text-center">
+                <h3 class="text-xl font-black tracking-tight mb-2">Evaluation Analytics Complete!</h3>
+                <p class="text-xs font-medium text-brand-100 mb-4">Detailed Performance Breakdown Matrix</p>
+                
+                <div class="inline-flex items-center justify-center bg-white/10 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/10">
+                    <span class="text-3xl font-black" id="score-correct">0</span>
+                    <span class="mx-2 text-xl font-bold opacity-50">/</span>
+                    <span class="text-2xl font-bold text-brand-200" id="score-total">0</span>
+                </div>
+                <p class="text-xs font-bold text-emerald-200 mt-3" id="score-percentage-label">Accuracy: 0%</p>
+            </div>
+
+            <div class="flex gap-3 mb-6">
+                <button onclick="clearAndGoHome()" class="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                    <i class="fa-solid fa-house"></i> Home Screen
+                </button>
+                <button onclick="goBackToChaptersList()" class="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-500/10 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-book-open"></i> Other Chapters
+                </button>
+            </div>
+
+            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-brand-500"></i> Item-by-Item Review Audit
+            </h4>
+            <div id="detailed-review-list-container" class="space-y-4"></div>
+        </section>
+
+    </div>
+
+    <script>
+        // API BASE ROUTING ENDPOINT: Links Client Requests to Deployment Macro on Google Apps Script Web Core Framework
+        const API_URL = "https://script.google.com/macros/s/AKfycbzznHUO9JjcyNwbh3xKv_LmOiszD9Sj3RiHJnjJp_SvhOHHTffzLsXwQjdBxx2mbGD8/exec"; 
+
+        // -------------------------------------------------------------
+        // RUNTIME COMPONENT LOGIC DIAGNOSTIC SUITE
+        // -------------------------------------------------------------
+        // Turn parameter flag to 'true' to deploy immediate lifecycle monitoring reports directly down to internal browser logs.
+        const DEBUG_MODE = false;
+
+        /**
+         * Core Diagnostic Logger Pipeline Handler Method
+         * @param {string} lifecycleContextNode Context string identifier detailing runtime module framework origin
+         * @param {any} contextualPayload Object parameter metrics evaluated across runtime actions
+         */
+        function executeMatrixDiagnosticDebugger(lifecycleContextNode, contextualPayload) {
+            if (!DEBUG_MODE) return;
+            const separationLine = "━".repeat(60);
+            console.group(`%c[DEBUG MATRIX ANALYSIS] 🌐 Node: ${lifecycleContextNode}`, "color: #6366f1; font-weight: bold; font-size: 11px;");
+            console.log(`%cTimestamp Log: ${new Date().toISOString()}`, "color: #94a3b8; font-style: italic;");
+            console.log("%cCaptured Structural State Payload Context Context Metrics:", "color: #475569; font-weight: bold;");
+            console.dir(contextualPayload);
+            console.log(`%cCurrent Application Memory Snapshot State:`, "color: #0d9488;");
+            console.log(JSON.stringify(state));
+            console.groupEnd();
+        }
+
+        // APPLICATION RUNTIME STATE MEMORY NODE SCHEMA MATRIX
+        let state = {
+            lang: "en",
+            haptics: true,
+            fontSizeIndex: 1, 
+            activeSubject: "",
+            activeChapter: "",
+            activeChapterIndex: 0, 
+            allQuestions: [],
+            currentQuestionIndex: 0,
+            userAnswers: {} 
+        };
+    
+        // -------------------------------------------------------------
+        // ROUTING HELPERS INTERACTION METHODS
+        // -------------------------------------------------------------
+
+        /**
+         * Clears all session parameters and navigates back to the main subjects view.
+         */
+        function clearAndGoHome() {
+            executeMatrixDiagnosticDebugger("Navigation Trigger: Clear and Re-route Home Screen Context Layouts", { action: "clearAndGoHome" });
+            triggerHapticFeedback(15);
+            
+            state.activeSubject = "";
+            state.activeChapter = "";
+            state.activeChapterIndex = 0;
+            state.allQuestions = [];
+            state.currentQuestionIndex = 0;
+            state.userAnswers = {};
+            
+            saveState();         
+            loadSubjects();      
+            navigateTo('subjects'); 
+        }
+
+        /**
+         * Clears chapter parameters and returns the user to the current subject's chapters list.
+         */
+        function goBackToSubjects() {
+            executeMatrixDiagnosticDebugger("Navigation Trigger: Return to Root Subject Track Repositories", { action: "goBackToSubjects" });
+            triggerHapticFeedback(10);
+            
+            state.activeSubject = "";
+            state.activeChapter = "";
+            state.activeChapterIndex = 0;
+            
+            saveState();
+            loadSubjects();
+            navigateTo('subjects');
+        }
+
+        // -------------------------------------------------------------
+        // INITIALIZATION & STATE PERSISTENCE CORE CONTROL
+        // -------------------------------------------------------------
+        document.addEventListener("DOMContentLoaded", () => {
+            executeMatrixDiagnosticDebugger("Engine Initialization: DOM Content Loaded Context Execution", { lifecycle: "boot" });
+            loadState();
+            initSystemTheme();
+            toggleLanguage(state.lang, false);
+            applyFontSize(); 
+            initSwipeGestures();
+            
+            if (state.activeSubject && state.activeChapter && state.allQuestions.length > 0) {
+                resumeActiveQuizSession();
+            } else {
+                loadSubjects();
+            }
+        });
+
+        /**
+         * Saves the current session state into browser local storage cache memory blocks.
+         */
+        function saveState() {
+            localStorage.setItem('mcq_engine_state', JSON.stringify({
+                lang: state.lang,
+                haptics: state.haptics,
+                fontSizeIndex: state.fontSizeIndex,
+                activeSubject: state.activeSubject,
+                activeChapter: state.activeChapter,
+                activeChapterIndex: state.activeChapterIndex,
+                allQuestions: state.allQuestions,
+                currentQuestionIndex: state.currentQuestionIndex,
+                userAnswers: state.userAnswers
+            }));
+            executeMatrixDiagnosticDebugger("State Persistent Hook: State Cached To Browser Memory Blocks", { stateObject: state });
+        }
+
+        /**
+         * Restores application tracking variables from localStorage cache schemas.
+         */
+        function loadState() {
+            const saved = localStorage.getItem('mcq_engine_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                    if(state.fontSizeIndex === undefined) state.fontSizeIndex = 1;
+                } catch (e) { console.error("State parse error", e); }
+            }
+            updateHapticsUI();
+            executeMatrixDiagnosticDebugger("State Persistent Hook: Sync Stored States Back To Memory Node Structures", { loadedFromStorage: !!saved });
+        }
+
+        /**
+         * Flushes the state tracking memory nodes during runtime cycles.
+         */
+        function clearQuizState() {
+            executeMatrixDiagnosticDebugger("State Lifecycle Modifier: Clear Quiz Session Context Arrays", { trigger: "clearQuizState" });
+            state.activeSubject = "";
+            state.activeChapter = "";
+            state.activeChapterIndex = 0;
+            state.allQuestions = [];
+            state.currentQuestionIndex = 0;
+            state.userAnswers = {};
+            saveState();
+        }
+
+        // -------------------------------------------------------------
+        // HARDWARE INTERACTIONS, THEME HANDLING, & RESPONSIVE TOUCH ENGINE GESTURES
+        // -------------------------------------------------------------
+
+        /**
+         * Updates text scaling across DOM targets by updating active scale class tags.
+         * @param {number} step Sizing increment scale level modification multiplier (+1 / -1)
+         */
+        function changeFontSize(step) {
+            triggerHapticFeedback(10);
+            state.fontSizeIndex = Math.max(0, Math.min(4, state.fontSizeIndex + step));
+            saveState();
+            applyFontSize();
+            executeMatrixDiagnosticDebugger("UI Font Customizer Action: Applied Scale Metrics Modifications", { sizeIndex: state.fontSizeIndex });
+        }
+
+        /**
+         * Injects CSS class layouts onto typography blocks based on active state parameters.
+         */
+        function applyFontSize() {
+            const qText = document.getElementById('question-text');
+            const expText = document.getElementById('explanation-text');
+            const optionsSpans = document.querySelectorAll('.opt-text-target');
+            
+            if(qText) {
+                qText.className = `font-bold text-slate-900 dark:text-slate-100 transition-all duration-200 scale-text-${state.fontSizeIndex}`;
+            }
+            if(expText) {
+                const expSize = Math.max(0, state.fontSizeIndex - 1);
+                expText.className = `leading-relaxed font-medium text-slate-600 dark:text-slate-300 transition-all duration-200 scale-text-${expSize}`;
+            }
+            optionsSpans.forEach(span => {
+                span.className = `opt-text-target scale-opt-${state.fontSizeIndex}`;
+            });
+        }
+
+        /**
+         * Hooks into element viewport touch handlers to monitor and intercept left/right swipe navigation gestures.
+         */
+        function initSwipeGestures() {
+            const card = document.getElementById('quiz-card-container');
+            if(!card) return;
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            card.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            card.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                if (document.getElementById('view-quiz').classList.contains('hidden')) return;
+                const threshold = 50; 
+                if (touchStartX - touchEndX > threshold) {
+                    executeMatrixDiagnosticDebugger("Touch Gestures Engine: Recognized Swipe Left Sequence Action", { deltaX: touchStartX - touchEndX });
+                    changeQuestion(1); 
+                } else if (touchEndX - touchStartX > threshold) {
+                    executeMatrixDiagnosticDebugger("Touch Gestures Engine: Recognized Swipe Right Sequence Action", { deltaX: touchEndX - touchStartX });
+                    changeQuestion(-1); 
+                }
+            }
+        }
+
+        /**
+         * Vibrates physical device components based on active configuration states.
+         * @param {number} ms Duration in milliseconds to trigger the haptic feedback loop
+         */
+        function triggerHapticFeedback(ms) {
+            if (state.haptics && navigator.vibrate) {
+                navigator.vibrate(ms);
+            }
+        }
+
+        /**
+         * Toggles the configuration parameter tracking device feedback permissions.
+         */
+        function toggleHaptics() {
+            state.haptics = !state.haptics;
+            saveState();
+            updateHapticsUI();
+            if(state.haptics) triggerHapticFeedback(20);
+            executeMatrixDiagnosticDebugger("Hardware Control Configuration: Mutated Vibration System Authorization Keys", { hapticsEnabled: state.haptics });
+        }
+
+        /**
+         * Re-renders the button components displaying the active vibration status mode.
+         */
+        function updateHapticsUI() {
+            const btn = document.getElementById('silent-btn');
+            if (!btn) return;
+            if (state.haptics) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-xs"></i> <span class="text-[10px] uppercase font-bold hidden xs:block">Vibe</span>`;
+                btn.className = "h-8 px-2 rounded-xl text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 border border-emerald-200/40 shadow-sm shrink-0";
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-xs"></i> <span class="text-[10px] uppercase font-bold hidden xs:block">Mute</span>`;
+                btn.className = "h-8 px-2 rounded-xl text-rose-600 bg-rose-50 dark:bg-rose-950/30 dark:text-rose-400 text-xs font-bold flex items-center gap-1 border border-rose-200/40 shadow-sm shrink-0";
+            }
+        }
+
+        /**
+         * Scans configuration maps and systems settings profiles to apply dark/light background states.
+         */
+        function initSystemTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                const icon = document.getElementById('theme-icon');
+                if(icon) icon.className = "fa-solid fa-sun text-xs";
+            } else {
+                document.documentElement.classList.remove('dark');
+                const icon = document.getElementById('theme-icon');
+                if(icon) icon.className = "fa-solid fa-moon text-xs";
+            }
+        }
+
+        /**
+         * Inverts document color tokens across root HTML layouts, switching between dark and light modes.
+         */
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            const icon = document.getElementById('theme-icon');
+            if(icon) icon.className = isDark ? "fa-solid fa-sun text-xs" : "fa-solid fa-moon text-xs";
+            executeMatrixDiagnosticDebugger("UI Core Style Customizer: Switched Active Interface Skin Configuration", { isDarkMode: isDark });
+        }
+
+        /**
+         * Slides out the subject indexing links drawer on mobile displays.
+         */
+        function toggleSidebar() {
+            const overlay = document.getElementById('sidebar-overlay');
+            const menu = document.getElementById('sidebar-menu');
+            if(!overlay || !menu) return;
+            const isHidden = menu.classList.contains('-translate-x-full');
+            
+            if (isHidden) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    menu.classList.remove('-translate-x-full');
+                }, 20);
+            } else {
+                overlay.classList.add('opacity-0');
+                menu.classList.add('-translate-x-full');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+            }
+            triggerHapticFeedback(10);
+            executeMatrixDiagnosticDebugger("UI Interactive Components: Sidebar Navigation Drawer State Toggled", { sideBarOpening: isHidden });
+        }
+
+        /**
+         * Updates application target translation dictionaries and refetches data objects if required.
+         * @param {string} lang Target region mapping key context identifier string ("en" / "hi")
+         * @param {boolean} fetchNewData Controls whether network endpoints sync data under translation changes
+         */
+        function toggleLanguage(lang, fetchNewData = true) {
+            if (!lang) {
+                lang = state.lang === 'en' ? 'hi' : 'en';
+            }
+            if (lang !== 'en' && lang !== 'hi') return;
+            state.lang = lang;
+            saveState();
+            
+            const btnEn = document.getElementById('lang-btn-en');
+            const btnHi = document.getElementById('lang-btn-hi');
+            
+            if (state.lang === 'hi') {
+                if(btnHi) btnHi.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-brand-600 text-white shadow-sm";
+                if(btnEn) btnEn.className = "px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800";
+            } else {
+                if(btnEn) btnEn.className = "px-2.5 py-1 text-xs font-bold rounded-lg bg-brand-600 text-white shadow-sm";
+                if(btnHi) btnHi.className = "px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800";
+            }
+
+            executeMatrixDiagnosticDebugger("UI Cross Language Action: Language Matrix Mutation Hook Captured", { selectedLanguage: state.lang, pipelineRemoteSync: fetchNewData });
+
+            if(fetchNewData) {
+                triggerHapticFeedback(20);
+                
+                const isViewingQuiz = !document.getElementById('view-quiz').classList.contains('hidden');
+                const isViewingChapters = !document.getElementById('view-chapters').classList.contains('hidden');
+
+                if (isViewingQuiz && state.activeSubject && state.activeChapter) {
+                    launchQuizEvaluationEngine(state.activeChapter, state.activeChapterIndex, true);
+                } else if (isViewingChapters && state.activeSubject) {
+                    loadChapters();
+                } else {
+                    clearQuizState();
+                    loadSubjects();
+                }
+            }
+        }
+
+        /**
+         * Switches the hidden status utility classes across primary dashboard markup wrapper layouts.
+         * @param {string} viewId Element identifier tag to map down and make active ("subjects"/"chapters"/"quiz"/"results")
+         */
+        function navigateTo(viewId) {
+            ['view-subjects', 'view-chapters', 'view-quiz', 'view-results'].forEach(v => {
+                const element = document.getElementById(v);
+                if(element) element.classList.add('hidden');
+            });
+            const target = document.getElementById(`view-${viewId}`);
+            if(target) target.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            executeMatrixDiagnosticDebugger("UI Structural Controller: Navigating View Port Panels Framework", { activeTargetPanelId: `view-${viewId}` });
+        }
+
+        // -------------------------------------------------------------
+        // REMOTE NETWORK DATA FETCHING PIPELINE DATA ENGINE HOOKS
+        // -------------------------------------------------------------
+
+        /**
+         * Pulls the master list of available subject track keys from the endpoint.
+         */
+        function loadSubjects() {
+            showLoader();
+            
+            const subjectTranslations = {
+                "History": "इतिहास", "Polity": "राजव्यवस्था", "Computer": "कंप्यूटर",
+                "UP GK": "उत्तर प्रदेश सामान्य ज्ञान", "Economic & Social Development": "आर्थिक और सामाजिक विकास",
+                "Geography": "भूगोल", "Environment & Ecology": "पर्यावरण और पारिस्थितिकी"
+            };
+
+            const endpointUrl = `${API_URL}?action=getSubjects&lang=${state.lang}`;
+            executeMatrixDiagnosticDebugger("Networking Pipeline Hook: Fetching Subject Index Profiles", { url: endpointUrl });
+
+            fetch(endpointUrl)
+                .then(res => res.json())
+                .then(data => {
+                    executeMatrixDiagnosticDebugger("Networking Response Received: Subject Track Arrays Package", { rawPayloadReceived: data });
+                    const container = document.getElementById('subjects-container');
+                    const sidebarContainer = document.getElementById('sidebar-subjects-container');
+                    if(!container || !sidebarContainer) return;
+                    container.innerHTML = "";
+                    sidebarContainer.innerHTML = "";
+                    
+                    if (data.error || !Array.isArray(data) || data.length === 0) {
+                        const fallbackMsg = `<p class="text-xs font-semibold text-center text-rose-500 py-8 col-span-full">⚠️ No matching structural database logs found.</p>`;
+                        container.innerHTML = fallbackMsg;
+                        sidebarContainer.innerHTML = fallbackMsg;
+                        return;
+                    }
+
+                    data.forEach(sub => {
+                        const cleanKey = sub.trim();
+                        let displayName = sub;
+                        if (state.lang === 'hi') {
+                            displayName = subjectTranslations[sub] || subjectTranslations[cleanKey] || sub;
+                        }
+
+                        const el = document.createElement('div');
+                        el.className = "p-5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 rounded-2xl shadow-sm flex items-center justify-between cursor-pointer hover:border-brand-500/40 group transition-all duration-200 active:scale-[0.99]";
+                        el.onclick = () => { triggerHapticFeedback(15); selectSubjectTrack(sub); };
+                        el.innerHTML = `
+                            <div class="flex items-center gap-4">
+                                <div class="w-11 h-11 rounded-xl bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-base shadow-sm group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                                    ${displayName.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">${displayName}</h4>
+                                    <p class="text-[11px] font-semibold text-slate-400 mt-0.5">Explore Specializations Matrix</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-slate-300 dark:text-slate-700 group-hover:translate-x-0.5 transition-transform"></i>
+                        `;
+                        container.appendChild(el);
+
+                        const sideEl = document.createElement('button');
+                        sideEl.className = "w-full text-left p-3 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between group transition-all";
+                        sideEl.onclick = () => { toggleSidebar(); selectSubjectTrack(sub); };
+                        sideEl.innerHTML = `
+                            <div class="flex items-center gap-2.5">
+                                <span class="w-2 h-2 rounded-full bg-brand-500 group-hover:scale-125 transition-transform"></span>
+                                <span class="truncate max-w-[180px]">${displayName}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[9px] text-slate-300 group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all"></i>
+                        `;
+                        sidebarContainer.appendChild(sideEl);
+                    });
+                    
+                    if(document.getElementById('view-chapters').classList.contains('hidden') && document.getElementById('view-quiz').classList.contains('hidden')) {
+                        navigateTo('subjects');
+                    }
+                })
+                .catch(err => showNetworkError(err))
+                .finally(() => hideLoader());
+        }
+
+        /**
+         * Sets the selected subject string value and triggers the corresponding chapter loader function.
+         * @param {string} subjectName Target database filename identifier record mapping string.
+         */
+        function selectSubjectTrack(subjectName) {
+            state.activeSubject = subjectName;
+            const heading = document.getElementById('current-subject-title');
+            if(heading) heading.innerText = subjectName.replace(/\.json$/i, '');
+            loadChapters();
+        }
+
+        /**
+         * Queries the endpoint for available chapter subdivisions belonging to the selected subject tracking key.
+         */
+        function loadChapters() {
+            showLoader();
+            const heading = document.getElementById('current-subject-title');
+            if(heading && state.activeSubject) heading.innerText = state.activeSubject.replace(/\.json$/i, '');
+
+            const endpointUrl = `${API_URL}?action=getChapters&sheetName=${encodeURIComponent(state.activeSubject)}&lang=${state.lang}`;
+            executeMatrixDiagnosticDebugger("Networking Pipeline Hook: Fetching Sub-Specialization Chapter Collections", { url: endpointUrl });
+
+            fetch(endpointUrl)
+                .then(res => res.json())
+                .then(data => {
+                    executeMatrixDiagnosticDebugger("Networking Response Received: Chapters Context Profiles Data", { rawPayloadReceived: data });
+                    const container = document.getElementById('chapters-container');
+                    if(!container) return;
+                    container.innerHTML = "";
+
+                    if (data.error || !Array.isArray(data) || data.length === 0) {
+                        container.innerHTML = `<p class="text-xs font-semibold text-center text-slate-500 py-6">No available operational chapters discovered for this target block.</p>`;
+                        return;
+                    }
+
+                    data.forEach((chap, idx) => {
+                        const el = document.createElement('div');
+                        el.className = "p-4 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-xl flex items-center justify-between cursor-pointer hover:border-brand-500/30 transition-all active:scale-[0.995]";
+                        el.onclick = () => { triggerHapticFeedback(20); launchQuizEvaluationEngine(chap, idx); };
+                        el.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-slate-400 w-5">${idx + 1}.</span>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${chap}</span>
+                            </div>
+                            <i class="fa-solid fa-play text-[10px] text-brand-500 bg-brand-50 dark:bg-brand-950/40 p-2 rounded-lg"></i>
+                        `;
+                        container.appendChild(el);
+                    });
+                    navigateTo('chapters');
+                })
+                .catch(err => showNetworkError(err))
+                .finally(() => hideLoader());
+        }
+
+        // -------------------------------------------------------------
+        // CORE QUIZ RUNTIME CORE INTERACTIVE PROCESSING PIPELINE LOGIC
+        // -------------------------------------------------------------
+
+        /**
+         * Initializes and configures state variables for an individual chapter quiz session.
+         * @param {string} chapterName Localized textual descriptive key string mapped down from parent indexes
+         * @param {number} chapterIdx Baseline array index pointer representing structural position coords
+         * @param {boolean} isLanguageSwitch Context flag indicating if execution is triggered by a language switch toggle
+         */
+        function launchQuizEvaluationEngine(chapterName, chapterIdx, isLanguageSwitch = false) {
+            state.activeChapterIndex = chapterIdx !== undefined ? chapterIdx : state.activeChapterIndex;
+            
+            if (!isLanguageSwitch) {
+                if (window.event && (window.event.type === 'click' || window.event.currentTarget?.id === 'chapters-container')) {
+                    state.allQuestions = [];
+                    state.currentQuestionIndex = 0;
+                    state.userAnswers = {};
+                }
+                state.activeChapter = chapterName;
+            }
+            saveState();
+
+            showLoader();
+            const panel = document.getElementById('explanation-panel');
+            if(panel) panel.classList.add('hidden');
+
+            const endpointUrl = `${API_URL}?action=getFullChapterData&sheetName=${encodeURIComponent(state.activeSubject)}&chapterName=${encodeURIComponent(chapterName)}&chapterIndex=${state.activeChapterIndex}&lang=${state.lang}`;
+            executeMatrixDiagnosticDebugger("Networking Pipeline Hook: Fetching Complete Target Questions Stream Node Packet", { url: endpointUrl, chapterIndex: state.activeChapterIndex, languageToggleAction: isLanguageSwitch });
+
+            fetch(endpointUrl)
+                .then(res => res.json())
+                .then(data => {
+                    executeMatrixDiagnosticDebugger("Networking Response Received: Structural Evaluation Questions Collection Data", { questionsCount: data?.length, questionsPayload: data });
+                    if (data.error || !Array.isArray(data) || data.length === 0) {
+                        alert("Structural Failure: Unable to build parsing indexes.");
+                        return;
+                    }
+                    
+                    state.allQuestions = data;
+                    
+                    if (isLanguageSwitch && data.length > 0) {
+                         const indicator = document.getElementById('quiz-chapter-indicator');
+                         if(indicator) indicator.innerText = state.activeChapter.toUpperCase();
+                    }
+                    
+                    saveState();
+                    
+                    const indicator = document.getElementById('quiz-chapter-indicator');
+                    if(indicator) indicator.innerText = state.activeChapter.toUpperCase();
+                    buildQuestionMatrixSelectionGrid();
+                    renderActiveQuestionCard();
+                    navigateTo('quiz');
+                })
+                .catch(err => showNetworkError(err))
+                .finally(() => hideLoader());
+        }
+
+        /**
+         * Rehydrates and restores active quiz parameters from localStorage when returning to an un-finalized session.
+         */
+        function resumeActiveQuizSession() {
+            executeMatrixDiagnosticDebugger("Session Continuity Lifecycle: Re-building Dashboard Layouts From Stored Cache Records", { activeSubjectTrack: state.activeSubject, targetChapter: state.activeChapter });
+            const indicator = document.getElementById('quiz-chapter-indicator');
+            if(indicator) indicator.innerText = state.activeChapter.toUpperCase();
+            const panel = document.getElementById('explanation-panel');
+            if(panel) panel.classList.add('hidden');
+            buildQuestionMatrixSelectionGrid();
+            renderActiveQuestionCard();
+            navigateTo('quiz');
+        }
+
+        /**
+         * Evaluates question choices and score metrics across the active session and prints results to the dynamic text score labels.
+         */
+        function updateLiveScoreboard() {
+            let correct = 0;
+            let wrong = 0;
+            
+            const answeredIndices = Object.keys(state.userAnswers).map(Number);
+            const totalAttempted = answeredIndices.length;
+            const currentViewedIndex = state.currentQuestionIndex;
+
+            let skipped = 0;
+            for(let i = 0; i <= currentViewedIndex; i++) {
+                if (state.userAnswers[i] === undefined) {
+                    skipped++;
+                }
+            }
+
+            for (const [index, userChar] of Object.entries(state.userAnswers)) {
+                const q = state.allQuestions[index];
+                if (q) {
+                    const correctChar = (q.Answer || q.answer || "").trim().toUpperCase();
+                    if (userChar === correctChar) correct++;
+                    else wrong++;
+                }
+            }
+
+            const percent = totalAttempted === 0 ? 0 : Math.round((correct / totalAttempted) * 100);
+
+            const elCorrect = document.getElementById('score-live-correct');
+            const elWrong = document.getElementById('score-live-wrong');
+            const elSkipped = document.getElementById('score-live-skipped');
+            const elPercent = document.getElementById('score-live-percent');
+
+            if(elCorrect) elCorrect.innerText = correct;
+            if(elWrong) elWrong.innerText = wrong;
+            if(elSkipped) elSkipped.innerText = skipped;
+            if(elPercent) elPercent.innerText = percent;
+        }
+
+        /**
+         * Renders the current question prompt and builds option items dynamically based on the active question data schema index.
+         */
+        function renderActiveQuestionCard() {
+            const qData = state.allQuestions[state.currentQuestionIndex];
+            if (!qData) {
+                const qTxtNode = document.getElementById('question-text');
+                if (qTxtNode) qTxtNode.innerText = "No structural quiz items discovered.";
+                return;
+            }
+
+            const rawQuestion = qData.Question || qData.question || "Empty question prompt text.";
+            const rawCorrectAnswer = (qData.Answer || qData.answer || "").trim().toUpperCase();
+            const examSource = qData.Exam || qData.exam || qData.Source || qData.source || "";
+            const userSelection = state.userAnswers[state.currentQuestionIndex];
+            const hasAnswered = userSelection !== undefined;
+
+            executeMatrixDiagnosticDebugger("UI Render Pipeline Action: Painting Active Evaluation Cards Data Frame", { questionIndexPosition: state.currentQuestionIndex, hasUserSubmittedChoice: hasAnswered, userChoiceRecord: userSelection || "None" });
+
+            const counter = document.getElementById('quiz-question-counter');
+            if(counter) counter.innerText = `Q ${state.currentQuestionIndex + 1}/${state.allQuestions.length}`;
+            
+            const progress = ((state.currentQuestionIndex + 1) / state.allQuestions.length) * 100;
+            const progressBar = document.getElementById('quiz-progress-bar');
+            if(progressBar) progressBar.style.width = `${progress}%`;
+
+            const sourceIndicator = document.getElementById('exam-source-indicator');
+            if (examSource && sourceIndicator) {
+                const srcTxt = document.getElementById('exam-source-text');
+                if(srcTxt) srcTxt.innerText = examSource;
+                sourceIndicator.classList.remove('hidden');
+            } else if(sourceIndicator) {
+                sourceIndicator.classList.add('hidden');
+            }
+
+            const qTxtNode = document.getElementById('question-text');
+            if(qTxtNode) qTxtNode.innerText = rawQuestion;
+            
+            const panel = document.getElementById('explanation-panel');
+            if(panel) panel.classList.add('hidden');
+
+            const container = document.getElementById('options-container');
+            if(!container) return;
+            container.innerHTML = "";
+
+            const optionsSchema = [
+                { char: 'A', keys: ['OptionA', 'option_a'] },
+                { char: 'B', keys: ['OptionB', 'option_b'] },
+                { char: 'C', keys: ['OptionC', 'option_c'] },
+                { char: 'D', keys: ['OptionD', 'option_d'] },
+                { char: 'E', keys: ['OptionE', 'option_e'] }
+            ];
+
+            optionsSchema.forEach(opt => {
+                const targetKey = opt.keys.find(k => qData[k] !== undefined && qData[k] !== null && qData[k] !== "" && qData[k] !== "#VALUE!");
+                if (!targetKey) return;
+
+                const optionText = qData[targetKey];
+                const optionChar = opt.char;
+                const isSelected = userSelection === optionChar;
+                const isThisCorrectAnswer = optionChar === rawCorrectAnswer;
+
+                let buttonStyles = "bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700";
+                let badgeStyles = "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400";
+                let statusIconHtml = `<div class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center shrink-0"></div>`;
+
+                if (hasAnswered) {
+                    if (isThisCorrectAnswer) {
+                        buttonStyles = "bg-emerald-50/60 border-emerald-500 text-emerald-900 dark:bg-emerald-950/20 dark:border-emerald-500 dark:text-emerald-300";
+                        badgeStyles = "bg-emerald-500 text-white";
+                        statusIconHtml = `<i class="fa-solid fa-circle-check text-emerald-500 text-base shrink-0"></i>`;
+                    } else if (isSelected) {
+                        buttonStyles = "bg-rose-50/60 border-rose-500 text-rose-900 dark:bg-rose-950/20 dark:border-rose-500 dark:text-rose-300";
+                        badgeStyles = "bg-rose-500 text-white";
+                        statusIconHtml = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base shrink-0"></i>`;
+                    } else {
+                        buttonStyles = "bg-slate-50/40 border-slate-100 text-slate-400 dark:bg-slate-900/40 dark:border-slate-800/40 dark:text-slate-600 pointer-events-none";
+                        badgeStyles = "bg-slate-100 text-slate-300 dark:bg-slate-800 dark:text-slate-700";
+                    }
+                }
+
+                const optButton = document.createElement('button');
+                optButton.className = `w-full p-4 rounded-2xl border ${buttonStyles} flex items-center justify-between text-left transition-all gap-4 text-xs font-bold group`;
+                if (!hasAnswered) {
+                    optButton.onclick = () => { triggerHapticFeedback(12); registerUserSelectionChoice(optionChar); };
+                } else {
+                    optButton.classList.add('cursor-default');
+                }
+
+                optButton.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-lg font-bold flex items-center justify-center text-xs shrink-0 transition-colors ${badgeStyles}">${optionChar}</span>
+                        <span class="opt-text-target font-semibold transition-all duration-200">${optionText}</span>
+                    </div>
+                    ${statusIconHtml}
+                `;
+                container.appendChild(optButton);
+            });
+
+            updateLiveScoreboard();
+            applyFontSize();
+            syncActiveMatrixItemGridHighlight();
+        }
+
+        /**
+         * Commits the selected option to state memory and immediately displays color-coded correction feedback.
+         * @param {string} chosenChar Option unique key character identifier text string ("A"-"E")
+         */
+        function registerUserSelectionChoice(chosenChar) {
+            if (state.userAnswers[state.currentQuestionIndex] !== undefined) return;
+            state.userAnswers[state.currentQuestionIndex] = chosenChar;
+            saveState();
+            renderActiveQuestionCard();
+
+            const qData = state.allQuestions[state.currentQuestionIndex];
+            if (qData) {
+                const correctChar = (qData.Answer || qData.answer || "").trim().toUpperCase();
+                if (chosenChar !== correctChar) {
+                    setTimeout(() => { toggleExplanation(true); }, 150);
+                }
+            }
+            executeMatrixDiagnosticDebugger("User Choice Selection Log Event: Input Value Saved", { questionIndex: state.currentQuestionIndex, selectedKeyChar: chosenChar });
+        }
+
+        /**
+         * Increments or decrements the active question pointer index to show adjacent questions.
+         * @param {number} direction Navigation step vector value (+1 for Next, -1 for Prev)
+         */
+        function changeQuestion(direction) {
+            triggerHapticFeedback(10);
+            const targetIndex = state.currentQuestionIndex + direction;
+            if (targetIndex >= 0 && targetIndex < state.allQuestions.length) {
+                state.currentQuestionIndex = targetIndex;
+                saveState();
+                renderActiveQuestionCard();
+            }
+        }
+
+        /**
+         * Collapses or expands the explanation panel display.
+         * @param {boolean|null} forcedState Pass an explicit boolean state to force a specific panel state, or null to toggle dynamically.
+         */
+        function toggleExplanation(forcedState = null) {
+            const panel = document.getElementById('explanation-panel');
+            if(!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            const open = forcedState !== null ? forcedState : isHidden;
+
+            if (open) {
+                const qData = state.allQuestions[state.currentQuestionIndex];
+                const exp = qData ? (qData.Explanation || qData.explanation || "No explanation data setup.") : "";
+                const expTxt = document.getElementById('explanation-text');
+                if(expTxt) expTxt.innerText = exp;
+                panel.classList.remove('hidden');
+                applyFontSize();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Builds the right-hand panel grid containing fast-jump navigation buttons for each question item.
+         */
+        function buildQuestionMatrixSelectionGrid() {
+            const grid = document.getElementById('question-matrix-grid');
+            if(!grid) return;
+            grid.innerHTML = "";
+
+            state.allQuestions.forEach((_, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `matrix-cell-${idx}`;
+                btn.onclick = () => {
+                    triggerHapticFeedback(10);
+                    state.currentQuestionIndex = idx;
+                    saveState();
+                    renderActiveQuestionCard();
+                };
+                btn.className = "h-9 w-full rounded-xl text-xs font-bold transition-all border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400";
+                btn.innerText = idx + 1;
+                grid.appendChild(btn);
+            });
+        }
+
+        /**
+         * Colors cell indicators in the grid layout to highlight answered, incorrect, or skipped questions.
+         */
+        function syncActiveMatrixItemGridHighlight() {
+            state.allQuestions.forEach((q, idx) => {
+                const btn = document.getElementById(`matrix-cell-${idx}`);
+                if (!btn) return;
+
+                const ans = state.userAnswers[idx];
+                const isCurrent = idx === state.currentQuestionIndex;
+
+                if (ans !== undefined) {
+                    const rawAnswerKey = (q.Answer || q.answer || "").trim().toUpperCase();
+                    if (ans === rawAnswerKey) {
+                        btn.className = "h-9 w-full rounded-xl text-xs font-bold border-emerald-500 bg-emerald-500 text-white shadow-sm";
+                    } else {
+                        btn.className = "h-9 w-full rounded-xl text-xs font-bold border-rose-500 bg-rose-500 text-white shadow-sm";
+                    }
+                } else {
+                    btn.className = "h-9 w-full rounded-xl text-xs font-bold border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400";
+                }
+
+                if (isCurrent) {
+                    btn.classList.add('ring-2', 'ring-brand-500', 'ring-offset-2', 'dark:ring-offset-slate-950');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-brand-500', 'ring-offset-2', 'dark:ring-offset-slate-950');
+                }
+            });
+        }
+
+        /**
+         * Validates responses, calculates final scores, builds comprehensive question review item rows, and transitions views.
+         */
+        function submitQuizEvaluationReport() {
+            if (!confirm("Are you sure you want to finalize this analysis review session?")) return;
+            triggerHapticFeedback(30);
+
+            let correctCount = 0;
+            const totalQuestions = state.allQuestions.length;
+            
+            state.allQuestions.forEach((q, idx) => {
+                if (q) {
+                    const rawAnswerKey = (q.Answer || q.answer || "").trim().toUpperCase();
+                    if (state.userAnswers[idx] === rawAnswerKey) correctCount++;
+                }
+            });
+
+            const percent = totalQuestions === 0 ? 0 : Math.round((correctCount / totalQuestions) * 100);
+            executeMatrixDiagnosticDebugger("Evaluation Finalization Pipeline: Grading Exam Session Results Data", { scoredCorrectItemsCount: correctCount, overallPercentageScore: percent });
+
+            const elCor = document.getElementById('score-correct');
+            const elTot = document.getElementById('score-total');
+            const elPct = document.getElementById('score-percentage-label');
+            
+            if(elCor) elCor.innerText = correctCount;
+            if(elTot) elTot.innerText = totalQuestions;
+            if(elPct) elPct.innerText = `Accuracy Score Profile: ${percent}%`;
+
+            const reviewContainer = document.getElementById('detailed-review-list-container');
+            if (reviewContainer) {
+                reviewContainer.innerHTML = ""; 
+
+                state.allQuestions.forEach((q, idx) => {
+                    const userAnswer = state.userAnswers[idx];
+                    const correctAnswer = (q.Answer || q.answer || "").trim().toUpperCase();
+                    const questionText = q.Question || q.question || "";
+                    const explanationText = q.Explanation || q.explanation || "No clarification logs available.";
+                    const examSource = q.Exam || q.exam || "";
+
+                    const isCorrect = userAnswer === correctAnswer;
+                    const isSkipped = userAnswer === undefined;
+
+                    let statusBadge = "";
+                    let cardBorder = "border-slate-200 dark:border-slate-800";
+                    
+                    if (isSkipped) {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border border-amber-200/30">Skipped</span>`;
+                        cardBorder = "border-amber-400/40 dark:border-amber-500/30";
+                    } else if (isCorrect) {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200/30">Correct</span>`;
+                        cardBorder = "border-emerald-400/40 dark:border-emerald-500/30";
+                    } else {
+                        statusBadge = `<span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border border-rose-200/30">Incorrect</span>`;
+                        cardBorder = "border-rose-400/40 dark:border-rose-500/30";
+                    }
+
+                    const optUserText = q[`Option${userAnswer}`] || q[`option_${userAnswer?.toLowerCase()}`] || "None (Unanswered)";
+                    const optCorrectText = q[`Option${correctAnswer}`] || q[`option_${correctAnswer?.toLowerCase()}`] || "";
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = `p-5 bg-white dark:bg-slate-900 border ${cardBorder} rounded-2xl shadow-sm transition-all`;
+                    itemCard.innerHTML = `
+                        <div class="flex items-center justify-between gap-4 mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            <span class="text-xs font-black text-slate-400">Question ${idx + 1}</span>
+                            ${statusBadge}
+                        </div>
+                        
+                        ${examSource ? `<p class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wide mb-1.5">${examSource}</p>` : ''}
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-4 leading-relaxed">${questionText}</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="p-3 rounded-xl text-xs flex flex-col gap-1 ${isCorrect ? 'bg-emerald-50/40 dark:bg-emerald-950/10 text-emerald-900 dark:text-emerald-300' : 'bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300'}">
+                                <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500">Correct Choice Matrix</span>
+                                <p class="font-bold"><span class="inline-block px-1.5 py-0.5 bg-emerald-500 text-white rounded text-[10px] mr-1.5">${correctAnswer}</span> ${optCorrectText}</p>
+                            </div>
+                            
+                            ${!isCorrect ? `
+                            <div class="p-3 rounded-xl text-xs flex flex-col gap-1 ${isSkipped ? 'bg-amber-50/40 dark:bg-amber-950/10 text-amber-900 dark:text-amber-300' : 'bg-rose-50/40 dark:bg-rose-950/10 text-rose-900 dark:text-rose-300'}">
+                                <span class="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-500">Your Answer Record</span>
+                                <p class="font-bold"><span class="inline-block px-1.5 py-0.5 ${isSkipped ? 'bg-amber-500' : 'bg-rose-500'} text-white rounded text-[10px] mr-1.5">${userAnswer || '-'}</span> ${optUserText}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/60">
+                            <span class="text-[10px] uppercase font-black tracking-wider text-brand-500 block mb-1">Analytical Explanation</span>
+                            <p class="text-[11px] leading-relaxed font-medium text-slate-600 dark:text-slate-400">${explanationText}</p>
+                        </div>
+                    `;
+                    reviewContainer.appendChild(itemCard);
+                });
+            }
+
+            navigateTo('results');
+        }
+
+        /**
+         * Cleans runtime session maps and routes back to the specific chapters overview without dumping parent data structures.
+         */
+        function goBackToChaptersList() {
+            triggerHapticFeedback(15);
+            
+            state.allQuestions = [];
+            state.currentQuestionIndex = 0;
+            state.userAnswers = {};
+            saveState();
+            
+            loadChapters();
+        }
+
+        // -------------------------------------------------------------
+        // HARDWARE INTERACTIVE PERIPHERALS: PHYSICAL KEYBOARD INPUT CAPTURE HANDLERS
+        // -------------------------------------------------------------
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('view-quiz').classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') changeQuestion(1);
+            if (e.key === 'ArrowLeft') changeQuestion(-1);
+        });
+
+        // -------------------------------------------------------------
+        // APPLICATION UTILITY INJECT HELPER SUBSYSTEMS
+        // -------------------------------------------------------------
+        function showLoader() { const l = document.getElementById('global-loader'); if(l) l.classList.remove('hidden'); }
+        function hideLoader() { const l = document.getElementById('global-loader'); if(l) l.classList.add('hidden'); }
+        function showNetworkError(err) { alert("Network Error: Failed to maintain connection with API."); }
+    </script>
+</body>
+</html>
